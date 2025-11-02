@@ -5,8 +5,11 @@ let village = null;
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing...');
+
     // Initialize village
     village = new Village();
+    console.log('Village created:', village);
     updateMainMenuUI();
     updateVillageUI();
 
@@ -15,10 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const villageScreen = document.getElementById('village-screen');
     const gameScreen = document.getElementById('game-screen');
     const canvas = document.getElementById('game-canvas');
+    console.log('Canvas element:', canvas);
 
     // Main menu buttons
     document.getElementById('start-game-btn').addEventListener('click', () => {
+        console.log('Start button clicked!');
         switchScreen(mainMenu, gameScreen);
+        console.log('Screen switched, calling startGame()');
         startGame();
     });
 
@@ -55,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize game
     game = new Game(canvas, village);
+    console.log('Game object created:', game);
 });
 
 function switchScreen(fromScreen, toScreen) {
@@ -63,7 +70,12 @@ function switchScreen(fromScreen, toScreen) {
 }
 
 function startGame() {
-    game.start();
+    console.log('startGame() called, game object:', game);
+    if (game) {
+        game.start();
+    } else {
+        console.error('ERROR: game object is null!');
+    }
 }
 
 function updateMainMenuUI() {
