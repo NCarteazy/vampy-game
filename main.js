@@ -5,42 +5,22 @@ let village = null;
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing...');
-
-    try {
-        // Initialize village
-        village = new Village();
-        console.log('Village created:', village);
-        updateMainMenuUI();
-        console.log('Main menu UI updated');
-        updateVillageUI();
-        console.log('Village UI updated');
-    } catch (error) {
-        console.error('Error during initialization:', error);
-    }
+    // Initialize village
+    village = new Village();
+    updateMainMenuUI();
+    updateVillageUI();
 
     // Get elements
     const mainMenu = document.getElementById('main-menu');
     const villageScreen = document.getElementById('village-screen');
     const gameScreen = document.getElementById('game-screen');
     const canvas = document.getElementById('game-canvas');
-    console.log('Canvas element:', canvas);
 
     // Main menu buttons
-    const startButton = document.getElementById('start-game-btn');
-    console.log('Start button element:', startButton);
-
-    if (startButton) {
-        startButton.addEventListener('click', () => {
-            console.log('Start button clicked!');
-            switchScreen(mainMenu, gameScreen);
-            console.log('Screen switched, calling startGame()');
-            startGame();
-        });
-        console.log('Click listener added to start button');
-    } else {
-        console.error('ERROR: Start button not found!');
-    }
+    document.getElementById('start-game-btn').addEventListener('click', () => {
+        switchScreen(mainMenu, gameScreen);
+        startGame();
+    });
 
     document.getElementById('village-btn').addEventListener('click', () => {
         switchScreen(mainMenu, villageScreen);
@@ -74,14 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initialize game
-    try {
-        game = new Game(canvas, village);
-        console.log('Game object created:', game);
-    } catch (error) {
-        console.error('Error creating game:', error);
-    }
-
-    console.log('DOMContentLoaded handler complete');
+    game = new Game(canvas, village);
 });
 
 function switchScreen(fromScreen, toScreen) {
@@ -90,45 +63,32 @@ function switchScreen(fromScreen, toScreen) {
 }
 
 function startGame() {
-    console.log('startGame() called, game object:', game);
-    if (game) {
-        game.start();
-    } else {
-        console.error('ERROR: game object is null!');
-    }
+    game.start();
 }
 
 function updateMainMenuUI() {
-    try {
-        document.getElementById('gold-display').textContent = village.gold;
-        document.getElementById('best-time-display').textContent = formatTime(village.bestTime);
-    } catch (error) {
-        console.error('Error in updateMainMenuUI:', error);
-    }
+    document.getElementById('gold-display').textContent = village.gold;
+    document.getElementById('best-time-display').textContent = formatTime(village.bestTime);
 }
 
 function updateVillageUI() {
-    try {
-        document.getElementById('village-gold').textContent = village.gold;
+    document.getElementById('village-gold').textContent = village.gold;
 
-        // Update building cards
-        for (let buildingName in village.buildings) {
-            const building = village.buildings[buildingName];
-            const card = document.querySelector(`[data-building="${buildingName}"]`);
+    // Update building cards
+    for (let buildingName in village.buildings) {
+        const building = village.buildings[buildingName];
+        const card = document.querySelector(`[data-building="${buildingName}"]`);
 
-            if (card) {
-                const cost = village.getCost(buildingName);
-                const canAfford = village.gold >= cost;
+        if (card) {
+            const cost = village.getCost(buildingName);
+            const canAfford = village.gold >= cost;
 
-                card.querySelector('.cost').textContent = cost;
-                card.querySelector('.level span').textContent = building.level;
+            card.querySelector('.cost').textContent = cost;
+            card.querySelector('.level span').textContent = building.level;
 
-                const buildBtn = card.querySelector('.build-btn');
-                buildBtn.disabled = !canAfford;
-                buildBtn.textContent = building.level === 0 ? 'Build' : 'Upgrade';
-            }
+            const buildBtn = card.querySelector('.build-btn');
+            buildBtn.disabled = !canAfford;
+            buildBtn.textContent = building.level === 0 ? 'Build' : 'Upgrade';
         }
-    } catch (error) {
-        console.error('Error in updateVillageUI:', error);
     }
 }

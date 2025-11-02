@@ -205,6 +205,8 @@ body {
     background: #0a0e27;
     cursor: crosshair;
     display: block;
+    position: relative;
+    z-index: 1;
 }
 
 #game-ui {
@@ -213,7 +215,8 @@ body {
     left: 0;
     width: 100%;
     padding: 1rem;
-    z-index: 10;
+    z-index: 100;
+    pointer-events: none;
 }
 
 .ui-top {

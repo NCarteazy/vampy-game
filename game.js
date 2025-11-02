@@ -44,7 +44,6 @@ class Game {
     resizeCanvas() {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
-        console.log('Canvas resized:', this.canvas.width, 'x', this.canvas.height);
     }
 
     setupInput() {
@@ -58,7 +57,6 @@ class Game {
     }
 
     start() {
-        console.log('Game starting...');
         this.running = true;
         this.paused = false;
         this.time = 0;
@@ -71,7 +69,6 @@ class Game {
         // Create player
         this.player = new Player(this.canvas.width / 2, this.canvas.height / 2);
         this.player.applyVillageBonuses(this.village);
-        console.log('Player created at:', this.player.x, this.player.y);
 
         // Create enemy spawner
         this.enemySpawner = new EnemySpawner();
@@ -82,7 +79,6 @@ class Game {
         // Start game loop
         this.lastTime = performance.now();
         this.gameLoop();
-        console.log('Game loop started');
     }
 
     gameLoop() {
@@ -174,10 +170,6 @@ class Game {
         // Clear canvas
         this.ctx.fillStyle = '#0a0e27';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-        // Debug: Draw a test rectangle to verify rendering
-        this.ctx.fillStyle = '#ff0000';
-        this.ctx.fillRect(50, 50, 100, 100);
 
         // Draw grid for depth
         this.ctx.strokeStyle = 'rgba(100, 100, 150, 0.1)';
