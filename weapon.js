@@ -21,6 +21,7 @@ class Weapon {
                 pierce: 0,
                 projectileSize: 8,
                 color: '#cccccc',
+                emoji: '🗡️',
                 description: 'Throws daggers at nearest enemy'
             },
             fireball: {
@@ -32,6 +33,7 @@ class Weapon {
                 pierce: 1,
                 projectileSize: 12,
                 color: '#ff6600',
+                emoji: '🔥',
                 description: 'Shoots fireballs that pierce enemies'
             },
             lightning: {
@@ -43,6 +45,7 @@ class Weapon {
                 pierce: 2,
                 projectileSize: 10,
                 color: '#00ffff',
+                emoji: '⚡',
                 description: 'Fast lightning bolts that chain'
             },
             axe: {
@@ -54,6 +57,7 @@ class Weapon {
                 pierce: 5,
                 projectileSize: 15,
                 color: '#888888',
+                emoji: '🪓',
                 description: 'Heavy axes that pierce multiple enemies'
             },
             holy: {
@@ -65,6 +69,7 @@ class Weapon {
                 pierce: 0,
                 projectileSize: 10,
                 color: '#66ff66',
+                emoji: '💧',
                 description: 'Rapid holy water shots'
             }
         };
@@ -155,14 +160,23 @@ class Weapon {
     }
 
     draw(ctx) {
-        ctx.fillStyle = this.config.color;
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = 8;
         ctx.shadowColor = this.config.color;
+        ctx.font = `${this.config.projectileSize * 2}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
 
         for (let proj of this.projectiles) {
-            ctx.beginPath();
-            ctx.arc(proj.x, proj.y, this.config.projectileSize, 0, Math.PI * 2);
-            ctx.fill();
+            // Rotate axe
+            if (this.type === 'axe') {
+                ctx.save();
+                ctx.translate(proj.x, proj.y);
+                ctx.rotate(proj.traveled * 0.1);
+                ctx.fillText(this.config.emoji, 0, 0);
+                ctx.restore();
+            } else {
+                ctx.fillText(this.config.emoji, proj.x, proj.y);
+            }
         }
 
         ctx.shadowBlur = 0;

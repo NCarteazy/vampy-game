@@ -24,6 +24,9 @@ class Game {
         // Pickups
         this.pickups = [];
 
+        // Particles
+        this.particles = [];
+
         // Stats
         this.time = 0;
         this.kills = 0;
@@ -31,13 +34,13 @@ class Game {
 
         // Upgrade system
         this.availableUpgrades = [
-            { type: 'weapon', id: 'fireball', name: 'Fireball', description: 'Shoots fireballs that pierce enemies' },
-            { type: 'weapon', id: 'lightning', name: 'Lightning', description: 'Fast lightning bolts' },
-            { type: 'weapon', id: 'axe', name: 'Spinning Axe', description: 'Heavy axes that pierce many enemies' },
-            { type: 'weapon', id: 'holy', name: 'Holy Water', description: 'Rapid holy water shots' },
-            { type: 'stat', id: 'maxHp', name: 'Max HP +20', description: 'Increase maximum health', amount: 20 },
-            { type: 'stat', id: 'speed', name: 'Speed +30', description: 'Increase movement speed', amount: 30 },
-            { type: 'stat', id: 'damage', name: 'Damage +15%', description: 'Increase all damage', amount: 0.15 }
+            { type: 'weapon', id: 'fireball', name: '🔥 Fireball', description: 'Shoots fireballs that pierce enemies' },
+            { type: 'weapon', id: 'lightning', name: '⚡ Lightning', description: 'Fast lightning bolts' },
+            { type: 'weapon', id: 'axe', name: '🪓 Spinning Axe', description: 'Heavy axes that pierce many enemies' },
+            { type: 'weapon', id: 'holy', name: '💧 Holy Water', description: 'Rapid holy water shots' },
+            { type: 'stat', id: 'maxHp', name: '❤️ Max HP +20', description: 'Increase maximum health', amount: 20 },
+            { type: 'stat', id: 'speed', name: '💨 Speed +30', description: 'Increase movement speed', amount: 30 },
+            { type: 'stat', id: 'damage', name: '💪 Damage +15%', description: 'Increase all damage', amount: 0.15 }
         ];
     }
 
@@ -73,8 +76,9 @@ class Game {
         // Create enemy spawner
         this.enemySpawner = new EnemySpawner();
 
-        // Clear pickups
+        // Clear pickups and particles
         this.pickups = [];
+        this.particles = [];
 
         // Start game loop
         this.lastTime = performance.now();
@@ -117,6 +121,9 @@ class Game {
                 this.kills++;
                 this.gold += enemy.goldValue;
 
+                // Create death particles
+                this.createDeathParticles(enemy.x, enemy.y, enemy.config.emoji);
+
                 // Drop XP
                 this.dropXP(enemy.x, enemy.y, enemy.xpValue);
 
@@ -126,6 +133,19 @@ class Game {
                 }
 
                 enemies.splice(i, 1);
+            }
+        }
+
+        // Update particles
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.life -= dt;
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.vy += 200 * dt; // Gravity
+
+            if (p.life <= 0) {
+                this.particles.splice(i, 1);
             }
         }
 
@@ -171,8 +191,17 @@ class Game {
         this.ctx.fillStyle = '#0a0e27';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
+        // Draw stars background
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        for (let i = 0; i < 100; i++) {
+            const x = (i * 173) % this.canvas.width;
+            const y = (i * 271) % this.canvas.height;
+            const size = (i % 3) + 1;
+            this.ctx.fillRect(x, y, size, size);
+        }
+
         // Draw grid for depth
-        this.ctx.strokeStyle = 'rgba(100, 100, 150, 0.1)';
+        this.ctx.strokeStyle = 'rgba(100, 100, 150, 0.05)';
         this.ctx.lineWidth = 1;
         const gridSize = 50;
         for (let x = 0; x < this.canvas.width; x += gridSize) {
@@ -189,13 +218,14 @@ class Game {
         }
 
         // Draw pickups
+        this.ctx.font = '20px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
         for (let pickup of this.pickups) {
-            this.ctx.fillStyle = pickup.type === 'xp' ? '#00ff00' : '#ffd700';
+            const emoji = pickup.type === 'xp' ? '💎' : '🪙';
             this.ctx.shadowBlur = 10;
             this.ctx.shadowColor = pickup.type === 'xp' ? '#00ff00' : '#ffd700';
-            this.ctx.beginPath();
-            this.ctx.arc(pickup.x, pickup.y, 8, 0, Math.PI * 2);
-            this.ctx.fill();
+            this.ctx.fillText(emoji, pickup.x, pickup.y);
             this.ctx.shadowBlur = 0;
         }
 
@@ -204,6 +234,17 @@ class Game {
 
         // Draw player
         this.player.draw(this.ctx);
+
+        // Draw particles
+        this.ctx.font = '24px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        for (let p of this.particles) {
+            const alpha = p.life / p.maxLife;
+            this.ctx.globalAlpha = alpha;
+            this.ctx.fillText(p.emoji, p.x, p.y);
+        }
+        this.ctx.globalAlpha = 1;
     }
 
     dropXP(x, y, amount) {
@@ -224,6 +265,23 @@ class Game {
             value: amount,
             collected: false
         });
+    }
+
+    createDeathParticles(x, y, emoji) {
+        // Create multiple particles
+        for (let i = 0; i < 8; i++) {
+            const angle = (Math.PI * 2 * i) / 8;
+            const speed = randomRange(50, 150);
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed - 100,
+                life: randomRange(0.5, 1.0),
+                maxLife: 1.0,
+                emoji: emoji
+            });
+        }
     }
 
     showLevelUpScreen() {

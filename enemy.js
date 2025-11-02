@@ -26,7 +26,8 @@ class Enemy {
                 size: 15,
                 color: '#ff3366',
                 xpValue: 5,
-                goldValue: 1
+                goldValue: 1,
+                emoji: '🧟'
             },
             fast: {
                 maxHp: 15,
@@ -35,7 +36,8 @@ class Enemy {
                 size: 12,
                 color: '#ffaa00',
                 xpValue: 3,
-                goldValue: 2
+                goldValue: 2,
+                emoji: '🦇'
             },
             tank: {
                 maxHp: 100,
@@ -44,7 +46,8 @@ class Enemy {
                 size: 25,
                 color: '#8844ff',
                 xpValue: 15,
-                goldValue: 5
+                goldValue: 5,
+                emoji: '👹'
             },
             swarm: {
                 maxHp: 10,
@@ -53,7 +56,8 @@ class Enemy {
                 size: 10,
                 color: '#00ff88',
                 xpValue: 2,
-                goldValue: 1
+                goldValue: 1,
+                emoji: '👻'
             }
         };
 
@@ -89,21 +93,21 @@ class Enemy {
     draw(ctx) {
         if (this.dead) return;
 
-        // Draw enemy body
-        ctx.fillStyle = this.config.color;
-        ctx.shadowBlur = 15;
+        // Draw enemy as emoji
+        ctx.shadowBlur = 10;
         ctx.shadowColor = this.config.color;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.font = `${this.size * 2.2}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.config.emoji, this.x, this.y);
         ctx.shadowBlur = 0;
 
         // Draw HP bar
-        const barWidth = this.size * 2;
+        const barWidth = this.size * 2.5;
         const barHeight = 4;
-        const barY = this.y - this.size - 10;
+        const barY = this.y - this.size - 8;
 
-        ctx.fillStyle = '#333';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.fillRect(this.x - barWidth / 2, barY, barWidth, barHeight);
 
         ctx.fillStyle = '#ff3366';

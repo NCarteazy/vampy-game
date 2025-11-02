@@ -139,6 +139,11 @@ body {
     transition: all 0.3s ease;
 }
 
+.building-icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
 .building-card:hover {
     border-color: #ff3366;
     box-shadow: 0 0 20px rgba(255, 51, 102, 0.3);

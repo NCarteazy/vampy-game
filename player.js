@@ -139,28 +139,14 @@ class Player {
     }
 
     draw(ctx) {
-        // Draw player
-        ctx.fillStyle = '#00aaff';
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = '#00aaff';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
+        // Draw player as vampire emoji
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = '#ff3366';
+        ctx.font = `${this.size * 2.5}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🧛', this.x, this.y);
         ctx.shadowBlur = 0;
-
-        // Draw direction indicator
-        if (this.vx !== 0 || this.vy !== 0) {
-            const angle = Math.atan2(this.vy, this.vx);
-            const tipX = this.x + Math.cos(angle) * this.size;
-            const tipY = this.y + Math.sin(angle) * this.size;
-
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(this.x, this.y);
-            ctx.lineTo(tipX, tipY);
-            ctx.stroke();
-        }
 
         // Draw weapons
         for (let weapon of this.weapons) {
