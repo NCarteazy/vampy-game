@@ -288,6 +288,24 @@ body {
     font-weight: bold;
 }
 
+.combo-text {
+    color: #ff3366;
+    font-size: 1.3rem;
+    font-weight: bold;
+    text-shadow: 0 0 10px #ff3366;
+    animation: pulse 0.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.powerup-text {
+    font-size: 1.5rem;
+    text-shadow: 0 0 10px #ffff00;
+}
+
 /* Level Up Screen */
 .levelup-content {
     background: rgba(20, 10, 40, 0.95);

@@ -17,6 +17,10 @@ class Player {
         // Weapons
         this.weapons = [new Weapon('dagger')];
 
+        // Power-up states
+        this.speedMultiplier = 1;
+        this.invincible = false;
+
         // Bonuses from village
         this.damageBonus = 1;
         this.hpBonus = 1;
@@ -63,8 +67,8 @@ class Player {
         // Normalize diagonal movement
         if (dx !== 0 || dy !== 0) {
             const normalized = normalizeVector(dx, dy);
-            this.vx = normalized.x * this.speed;
-            this.vy = normalized.y * this.speed;
+            this.vx = normalized.x * this.speed * this.speedMultiplier;
+            this.vy = normalized.y * this.speed * this.speedMultiplier;
         } else {
             this.vx = 0;
             this.vy = 0;
@@ -86,6 +90,7 @@ class Player {
     }
 
     takeDamage(amount) {
+        if (this.invincible) return;
         this.hp -= amount;
         if (this.hp < 0) this.hp = 0;
     }
@@ -141,11 +146,15 @@ class Player {
     draw(ctx) {
         // Draw player as vampire emoji
         ctx.shadowBlur = 15;
-        ctx.shadowColor = '#ff3366';
+        ctx.shadowColor = this.invincible ? '#ffff00' : '#ff3366';
         ctx.font = `${this.size * 2.5}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('🧛', this.x, this.y);
+
+        // Flash when invincible
+        if (!this.invincible || Math.floor(Date.now() / 100) % 2 === 0) {
+            ctx.fillText('🧛', this.x, this.y);
+        }
         ctx.shadowBlur = 0;
 
         // Draw weapons

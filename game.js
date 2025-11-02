@@ -27,10 +27,21 @@ class Game {
         // Particles
         this.particles = [];
 
+        // Power-ups
+        this.powerUps = [];
+        this.activePowerUps = {
+            speed: 0,
+            invincible: 0,
+            magnet: 0
+        };
+
         // Stats
         this.time = 0;
         this.kills = 0;
         this.gold = 0;
+        this.combo = 0;
+        this.comboTimer = 0;
+        this.screenShake = 0;
 
         // Upgrade system
         this.availableUpgrades = [
@@ -79,6 +90,11 @@ class Game {
         // Clear pickups and particles
         this.pickups = [];
         this.particles = [];
+        this.powerUps = [];
+        this.activePowerUps = { speed: 0, invincible: 0, magnet: 0 };
+        this.combo = 0;
+        this.comboTimer = 0;
+        this.screenShake = 0;
 
         // Start game loop
         this.lastTime = performance.now();
@@ -103,6 +119,23 @@ class Game {
 
     update(dt) {
         this.time += dt;
+        this.comboTimer -= dt;
+        if (this.comboTimer <= 0) {
+            this.combo = 0;
+        }
+
+        // Update screen shake
+        this.screenShake = Math.max(0, this.screenShake - dt * 10);
+
+        // Update active power-ups
+        for (let key in this.activePowerUps) {
+            this.activePowerUps[key] = Math.max(0, this.activePowerUps[key] - dt);
+        }
+
+        // Apply power-up effects
+        const speedMultiplier = this.activePowerUps.speed > 0 ? 1.5 : 1;
+        this.player.speedMultiplier = speedMultiplier;
+        this.player.invincible = this.activePowerUps.invincible > 0;
 
         // Update player
         this.player.update(dt, this.keys, this.canvas);
@@ -121,15 +154,26 @@ class Game {
                 this.kills++;
                 this.gold += enemy.goldValue;
 
+                // Combo system
+                this.combo++;
+                this.comboTimer = 2.0; // 2 seconds to keep combo
+
                 // Create death particles
                 this.createDeathParticles(enemy.x, enemy.y, enemy.config.emoji);
 
-                // Drop XP
-                this.dropXP(enemy.x, enemy.y, enemy.xpValue);
+                // Drop XP (more with combo)
+                const xpBonus = 1 + (this.combo * 0.1);
+                this.dropXP(enemy.x, enemy.y, Math.floor(enemy.xpValue * xpBonus));
 
                 // Chance to drop gold pickup
                 if (Math.random() < 0.3) {
                     this.dropGold(enemy.x, enemy.y, enemy.goldValue * 2);
+                }
+
+                // Boss drops power-up
+                if (enemy.type === 'boss') {
+                    this.dropPowerUp(enemy.x, enemy.y);
+                    this.screenShake = 1.0;
                 }
 
                 enemies.splice(i, 1);
@@ -150,10 +194,11 @@ class Game {
         }
 
         // Update pickups
+        const magnetRange = this.activePowerUps.magnet > 0 ? 300 : 100;
         for (let pickup of this.pickups) {
             // Move towards player if close
             const dist = distance(pickup.x, pickup.y, this.player.x, this.player.y);
-            if (dist < 100) {
+            if (dist < magnetRange) {
                 const dx = this.player.x - pickup.x;
                 const dy = this.player.y - pickup.y;
                 const norm = normalizeVector(dx, dy);
@@ -177,6 +222,25 @@ class Game {
 
         this.pickups = this.pickups.filter(p => !p.collected);
 
+        // Update power-ups
+        for (let powerUp of this.powerUps) {
+            const dist = distance(powerUp.x, powerUp.y, this.player.x, this.player.y);
+            if (dist < 150) {
+                const dx = this.player.x - powerUp.x;
+                const dy = this.player.y - powerUp.y;
+                const norm = normalizeVector(dx, dy);
+                powerUp.x += norm.x * 200 * dt;
+                powerUp.y += norm.y * 200 * dt;
+            }
+
+            if (circleCollision(powerUp.x, powerUp.y, 15, this.player.x, this.player.y, this.player.size)) {
+                this.activatePowerUp(powerUp.type);
+                powerUp.collected = true;
+            }
+        }
+
+        this.powerUps = this.powerUps.filter(p => !p.collected);
+
         // Update UI
         this.updateUI();
 
@@ -187,6 +251,14 @@ class Game {
     }
 
     draw() {
+        // Apply screen shake
+        this.ctx.save();
+        if (this.screenShake > 0) {
+            const shakeX = (Math.random() - 0.5) * this.screenShake * 20;
+            const shakeY = (Math.random() - 0.5) * this.screenShake * 20;
+            this.ctx.translate(shakeX, shakeY);
+        }
+
         // Clear canvas
         this.ctx.fillStyle = '#0a0e27';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -229,6 +301,16 @@ class Game {
             this.ctx.shadowBlur = 0;
         }
 
+        // Draw power-ups
+        this.ctx.font = '28px Arial';
+        for (let powerUp of this.powerUps) {
+            const emojis = { speed: '⚡', invincible: '⭐', magnet: '🧲' };
+            this.ctx.shadowBlur = 15;
+            this.ctx.shadowColor = '#ffff00';
+            this.ctx.fillText(emojis[powerUp.type], powerUp.x, powerUp.y);
+            this.ctx.shadowBlur = 0;
+        }
+
         // Draw enemies
         this.enemySpawner.draw(this.ctx);
 
@@ -245,6 +327,8 @@ class Game {
             this.ctx.fillText(p.emoji, p.x, p.y);
         }
         this.ctx.globalAlpha = 1;
+
+        this.ctx.restore();
     }
 
     dropXP(x, y, amount) {
@@ -265,6 +349,38 @@ class Game {
             value: amount,
             collected: false
         });
+    }
+
+    dropPowerUp(x, y) {
+        const types = ['speed', 'invincible', 'magnet'];
+        const type = randomChoice(types);
+        this.powerUps.push({
+            x: x,
+            y: y,
+            type: type,
+            collected: false
+        });
+    }
+
+    activatePowerUp(type) {
+        const duration = 10; // 10 seconds
+        this.activePowerUps[type] = duration;
+
+        // Create particles
+        const emojis = { speed: '⚡', invincible: '⭐', magnet: '🧲' };
+        for (let i = 0; i < 12; i++) {
+            const angle = (Math.PI * 2 * i) / 12;
+            const speed = randomRange(100, 200);
+            this.particles.push({
+                x: this.player.x,
+                y: this.player.y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 1.0,
+                maxLife: 1.0,
+                emoji: emojis[type]
+            });
+        }
     }
 
     createDeathParticles(x, y, emoji) {
@@ -345,6 +461,26 @@ class Game {
         document.getElementById('time-display').textContent = formatTime(this.time);
         document.getElementById('kills-display').textContent = this.kills;
         document.getElementById('game-gold-display').textContent = this.gold;
+
+        // Update wave and combo
+        const waveDisplay = document.getElementById('wave-display');
+        const comboDisplay = document.getElementById('combo-display');
+        if (waveDisplay) waveDisplay.textContent = this.enemySpawner.getWaveNumber();
+        if (comboDisplay) {
+            comboDisplay.textContent = this.combo > 1 ? `${this.combo}x COMBO!` : '';
+            comboDisplay.style.display = this.combo > 1 ? 'block' : 'none';
+        }
+
+        // Update power-up indicators
+        const powerUpDisplay = document.getElementById('powerup-display');
+        if (powerUpDisplay) {
+            let text = '';
+            if (this.activePowerUps.speed > 0) text += '⚡ ';
+            if (this.activePowerUps.invincible > 0) text += '⭐ ';
+            if (this.activePowerUps.magnet > 0) text += '🧲 ';
+            powerUpDisplay.textContent = text;
+            powerUpDisplay.style.display = text ? 'block' : 'none';
+        }
     }
 
     gameOver() {

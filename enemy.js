@@ -58,6 +58,16 @@ class Enemy {
                 xpValue: 2,
                 goldValue: 1,
                 emoji: '👻'
+            },
+            boss: {
+                maxHp: 500,
+                speed: 60,
+                damage: 30,
+                size: 40,
+                color: '#ff0000',
+                xpValue: 50,
+                goldValue: 25,
+                emoji: '💀'
             }
         };
 
@@ -123,17 +133,28 @@ class EnemySpawner {
         this.spawnInterval = 1.0;
         this.difficultyTimer = 0;
         this.difficulty = 1;
+        this.waveNumber = 1;
+        this.bossTimer = 0;
+        this.bossInterval = 30; // Boss every 30 seconds
     }
 
     update(dt, player, canvas) {
         this.spawnTimer += dt;
         this.difficultyTimer += dt;
+        this.bossTimer += dt;
 
         // Increase difficulty over time
         if (this.difficultyTimer > 10) {
             this.difficulty += 0.1;
             this.spawnInterval = Math.max(0.3, this.spawnInterval * 0.98);
             this.difficultyTimer = 0;
+            this.waveNumber++;
+        }
+
+        // Spawn boss
+        if (this.bossTimer > this.bossInterval) {
+            this.bossTimer = 0;
+            this.spawnBoss(player, canvas);
         }
 
         // Spawn enemies
@@ -203,8 +224,31 @@ class EnemySpawner {
         }
     }
 
+    spawnBoss(player, canvas) {
+        // Spawn at random edge
+        const side = randomInt(0, 3);
+        let x, y;
+        const margin = 100;
+
+        switch (side) {
+            case 0: x = randomRange(-margin, canvas.width + margin); y = -margin; break;
+            case 1: x = canvas.width + margin; y = randomRange(-margin, canvas.height + margin); break;
+            case 2: x = randomRange(-margin, canvas.width + margin); y = canvas.height + margin; break;
+            case 3: x = -margin; y = randomRange(-margin, canvas.height + margin); break;
+        }
+
+        const boss = new Enemy(x, y, 'boss');
+        boss.hp *= (1 + (this.difficulty - 1) * 0.5);
+        boss.maxHp *= (1 + (this.difficulty - 1) * 0.5);
+        this.enemies.push(boss);
+    }
+
     getEnemies() {
         return this.enemies;
+    }
+
+    getWaveNumber() {
+        return this.waveNumber;
     }
 
     clear() {

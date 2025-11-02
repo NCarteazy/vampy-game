@@ -107,7 +107,16 @@ class Weapon {
 
                 if (circleCollision(proj.x, proj.y, this.config.projectileSize,
                                    enemy.x, enemy.y, enemy.size)) {
-                    enemy.takeDamage(this.getDamage());
+                    // Critical hit (20% chance for 2x damage)
+                    const isCrit = Math.random() < 0.2;
+                    const damage = this.getDamage() * (isCrit ? 2 : 1);
+                    enemy.takeDamage(damage);
+
+                    // Store crit for visual feedback
+                    if (isCrit) {
+                        enemy.lastHitWasCrit = true;
+                    }
+
                     proj.hits++;
 
                     if (proj.hits > this.config.pierce) {
