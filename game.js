@@ -26,6 +26,7 @@ class Game {
 
         // Particles
         this.particles = [];
+        this.explosions = [];
 
         // Power-ups
         this.powerUps = [];
@@ -90,6 +91,7 @@ class Game {
         // Clear pickups and particles
         this.pickups = [];
         this.particles = [];
+        this.explosions = [];
         this.powerUps = [];
         this.activePowerUps = { speed: 0, invincible: 0, magnet: 0 };
         this.combo = 0;
@@ -190,6 +192,17 @@ class Game {
 
             if (p.life <= 0) {
                 this.particles.splice(i, 1);
+            }
+        }
+
+        // Update explosions
+        for (let i = this.explosions.length - 1; i >= 0; i--) {
+            const exp = this.explosions[i];
+            exp.life -= dt;
+            exp.radius += dt * 150;
+
+            if (exp.life <= 0) {
+                this.explosions.splice(i, 1);
             }
         }
 
@@ -317,6 +330,17 @@ class Game {
         // Draw player
         this.player.draw(this.ctx);
 
+        // Draw explosions
+        for (let exp of this.explosions) {
+            const alpha = exp.life / exp.maxLife * 0.5;
+            this.ctx.globalAlpha = alpha;
+            this.ctx.fillStyle = exp.color;
+            this.ctx.beginPath();
+            this.ctx.arc(exp.x, exp.y, exp.radius, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+        this.ctx.globalAlpha = 1;
+
         // Draw particles
         this.ctx.font = '24px Arial';
         this.ctx.textAlign = 'center';
@@ -407,8 +431,23 @@ class Game {
 
         // Generate 3 random upgrades
         const choices = [];
-        const availableOptions = [...this.availableUpgrades];
+        const availableOptions = [];
 
+        // Add weapon upgrades that can still be upgraded
+        for (let upgrade of this.availableUpgrades) {
+            if (upgrade.type === 'weapon') {
+                const weapon = this.player.weapons.find(w => w.type === upgrade.id);
+                if (weapon && weapon.canUpgrade()) {
+                    availableOptions.push({...upgrade, weapon: weapon});
+                } else if (!weapon) {
+                    availableOptions.push(upgrade);
+                }
+            } else {
+                availableOptions.push(upgrade);
+            }
+        }
+
+        // Pick 3 random
         for (let i = 0; i < 3 && availableOptions.length > 0; i++) {
             const index = randomInt(0, availableOptions.length - 1);
             choices.push(availableOptions[index]);
@@ -420,9 +459,26 @@ class Game {
         for (let upgrade of choices) {
             const card = document.createElement('div');
             card.className = 'upgrade-card';
+
+            let weaponInfo = '';
+            if (upgrade.type === 'weapon') {
+                const weapon = this.player.weapons.find(w => w.type === upgrade.id);
+                if (weapon) {
+                    const nextLevel = weapon.level + 1;
+                    const displayName = weapon.getDisplayName();
+                    if (nextLevel === weapon.maxLevel) {
+                        weaponInfo = `<p class="evolution-text">⚡ EVOLVES! ⚡</p>`;
+                    }
+                    weaponInfo += `<p class="level-info">Lv ${weapon.level} → ${nextLevel}</p>`;
+                } else {
+                    weaponInfo = '<p class="level-info">NEW!</p>';
+                }
+            }
+
             card.innerHTML = `
                 <h3>${upgrade.name}</h3>
                 <p>${upgrade.description}</p>
+                ${weaponInfo}
             `;
 
             card.addEventListener('click', () => {
@@ -480,6 +536,26 @@ class Game {
             if (this.activePowerUps.magnet > 0) text += '🧲 ';
             powerUpDisplay.textContent = text;
             powerUpDisplay.style.display = text ? 'block' : 'none';
+        }
+
+        // Update weapon display
+        const weaponDisplay = document.getElementById('weapon-display');
+        if (weaponDisplay) {
+            weaponDisplay.innerHTML = '';
+            for (let weapon of this.player.weapons) {
+                const weaponItem = document.createElement('div');
+                weaponItem.className = 'weapon-item';
+                const displayName = weapon.getDisplayName();
+                const emoji = weapon.getEmoji();
+                const isEvolved = weapon.isEvolved();
+                const evolvedClass = isEvolved ? 'weapon-evolved' : '';
+                weaponItem.innerHTML = `
+                    <span class="weapon-emoji">${emoji}</span>
+                    <span class="${evolvedClass}">${displayName}</span>
+                    <span class="weapon-level">Lv${weapon.level}</span>
+                `;
+                weaponDisplay.appendChild(weaponItem);
+            }
         }
     }
 
