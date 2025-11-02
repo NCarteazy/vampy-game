@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vampy - Vampire Survivor Clone</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Main Menu -->
+        <div id="main-menu" class="screen active">
+            <h1>VAMPY</h1>
+            <div class="menu-content">
+                <button id="start-game-btn" class="btn btn-primary">Start Run</button>
+                <button id="village-btn" class="btn btn-secondary">Village</button>
+                <div class="stats">
+                    <p>Gold: <span id="gold-display">0</span></p>
+                    <p>Best Time: <span id="best-time-display">0:00</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Village Screen -->
+        <div id="village-screen" class="screen">
+            <h2>Your Village</h2>
+            <div class="village-content">
+                <div class="resources">
+                    <p>Gold: <span id="village-gold">0</span></p>
+                </div>
+                <div class="buildings-grid">
+                    <div class="building-card" data-building="armory">
+                        <h3>Armory</h3>
+                        <p>+10% Damage</p>
+                        <p>Cost: <span class="cost">50</span> Gold</p>
+                        <button class="build-btn">Build</button>
+                        <p class="level">Level: <span>0</span></p>
+                    </div>
+                    <div class="building-card" data-building="temple">
+                        <h3>Temple</h3>
+                        <p>+10% Max HP</p>
+                        <p>Cost: <span class="cost">75</span> Gold</p>
+                        <button class="build-btn">Build</button>
+                        <p class="level">Level: <span>0</span></p>
+                    </div>
+                    <div class="building-card" data-building="academy">
+                        <h3>Academy</h3>
+                        <p>+15% XP Gain</p>
+                        <p>Cost: <span class="cost">100</span> Gold</p>
+                        <button class="build-btn">Build</button>
+                        <p class="level">Level: <span>0</span></p>
+                    </div>
+                    <div class="building-card" data-building="workshop">
+                        <h3>Workshop</h3>
+                        <p>+10% Attack Speed</p>
+                        <p>Cost: <span class="cost">60</span> Gold</p>
+                        <button class="build-btn">Build</button>
+                        <p class="level">Level: <span>0</span></p>
+                    </div>
+                </div>
+                <button id="back-to-menu-btn" class="btn btn-secondary">Back to Menu</button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div id="game-ui">
+                <div class="ui-top">
+                    <div class="stat-bar">
+                        <div class="hp-bar">
+                            <div class="bar-fill" id="hp-fill"></div>
+                            <span id="hp-text">100/100</span>
+                        </div>
+                        <div class="xp-bar">
+                            <div class="bar-fill" id="xp-fill"></div>
+                            <span id="xp-text">Level 1</span>
+                        </div>
+                    </div>
+                    <div class="game-stats">
+                        <p>Time: <span id="time-display">0:00</span></p>
+                        <p>Kills: <span id="kills-display">0</span></p>
+                        <p>Gold: <span id="game-gold-display">0</span></p>
+                    </div>
+                </div>
+            </div>
+            <canvas id="game-canvas"></canvas>
+        </div>
+
+        <!-- Level Up Screen -->
+        <div id="levelup-screen" class="screen overlay">
+            <div class="levelup-content">
+                <h2>LEVEL UP!</h2>
+                <div id="upgrade-choices" class="upgrade-grid">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameover-screen" class="screen overlay">
+            <div class="gameover-content">
+                <h2>Run Complete!</h2>
+                <div class="stats">
+                    <p>Time Survived: <span id="final-time">0:00</span></p>
+                    <p>Enemies Killed: <span id="final-kills">0</span></p>
+                    <p>Gold Earned: <span id="final-gold">0</span></p>
+                </div>
+                <button id="return-menu-btn" class="btn btn-primary">Return to Village</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="utils.js"></script>
+    <script src="weapon.js"></script>
+    <script src="enemy.js"></script>
+    <script src="player.js"></script>
+    <script src="village.js"></script>
+    <script src="game.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
