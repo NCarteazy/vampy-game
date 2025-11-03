@@ -27,7 +27,7 @@ class Weapon {
                 evolvedEmoji: '⚔️',
                 evolvedName: 'Twin Blades',
                 description: 'Throws daggers at nearest enemy',
-                mechanic: 'multishot' // Shoots multiple projectiles
+                mechanic: 'multishot'
             },
             fireball: {
                 name: 'Fireball',
@@ -42,7 +42,7 @@ class Weapon {
                 evolvedEmoji: '💥',
                 evolvedName: 'Meteor',
                 description: 'Shoots fireballs that pierce enemies',
-                mechanic: 'explosion' // Explodes on impact
+                mechanic: 'explosion'
             },
             lightning: {
                 name: 'Lightning',
@@ -57,7 +57,7 @@ class Weapon {
                 evolvedEmoji: '⚡',
                 evolvedName: 'Thunder Storm',
                 description: 'Fast lightning bolts that chain',
-                mechanic: 'chain' // Chains to nearby enemies
+                mechanic: 'chain'
             },
             axe: {
                 name: 'Spinning Axe',
@@ -72,7 +72,7 @@ class Weapon {
                 evolvedEmoji: '🌀',
                 evolvedName: 'Orbital Blades',
                 description: 'Heavy axes that pierce multiple enemies',
-                mechanic: 'boomerang' // Returns to player, evolves to orbit
+                mechanic: 'boomerang'
             },
             holy: {
                 name: 'Holy Water',
@@ -87,7 +87,173 @@ class Weapon {
                 evolvedEmoji: '✨',
                 evolvedName: 'Divine Light',
                 description: 'Rapid holy water shots',
-                mechanic: 'puddle' // Leaves damaging puddles
+                mechanic: 'puddle'
+            },
+            // NEW WEAPONS
+            bible: {
+                name: 'Holy Book',
+                damage: 12,
+                speed: 150,
+                cooldownTime: 0.1,
+                range: 200,
+                pierce: 3,
+                projectileSize: 12,
+                color: '#ffd700',
+                emoji: '📖',
+                evolvedEmoji: '📕',
+                evolvedName: 'Necronomicon',
+                description: 'Orbiting pages protect you',
+                mechanic: 'orbital_continuous'
+            },
+            cross: {
+                name: 'Crucifix',
+                damage: 20,
+                speed: 0,
+                cooldownTime: 5.0,
+                range: 150,
+                pierce: 0,
+                projectileSize: 20,
+                color: '#ffffff',
+                emoji: '✝️',
+                evolvedEmoji: '⛪',
+                evolvedName: 'Divine Cross',
+                description: 'Creates holy explosions around you',
+                mechanic: 'aura'
+            },
+            garlic: {
+                name: 'Garlic',
+                damage: 5,
+                speed: 0,
+                cooldownTime: 0.5,
+                range: 120,
+                pierce: 0,
+                projectileSize: 15,
+                color: '#f5f5dc',
+                emoji: '🧄',
+                evolvedEmoji: '💨',
+                evolvedName: 'Soul Eater',
+                description: 'Damages nearby enemies continuously',
+                mechanic: 'aura_continuous'
+            },
+            whip: {
+                name: 'Whip',
+                damage: 18,
+                speed: 0,
+                cooldownTime: 1.2,
+                range: 180,
+                pierce: 10,
+                projectileSize: 20,
+                color: '#8b4513',
+                emoji: '🎀',
+                evolvedEmoji: '⛓️',
+                evolvedName: 'Vampire Killer',
+                description: 'Slashes in an arc in front',
+                mechanic: 'arc'
+            },
+            frost: {
+                name: 'Ice Shard',
+                damage: 12,
+                speed: 350,
+                cooldownTime: 0.7,
+                range: 350,
+                pierce: 1,
+                projectileSize: 10,
+                color: '#00ddff',
+                emoji: '❄️',
+                evolvedEmoji: '🧊',
+                evolvedName: 'Blizzard',
+                description: 'Freezes and slows enemies',
+                mechanic: 'freeze'
+            },
+            pentagram: {
+                name: 'Pentagram',
+                damage: 50,
+                speed: 0,
+                cooldownTime: 8.0,
+                range: 250,
+                pierce: 0,
+                projectileSize: 30,
+                color: '#ff00ff',
+                emoji: '⭐',
+                evolvedEmoji: '✨',
+                evolvedName: 'Celestial Star',
+                description: 'Massive screen-wide damage',
+                mechanic: 'screen_nuke'
+            },
+            bones: {
+                name: 'Bone',
+                damage: 14,
+                speed: 320,
+                cooldownTime: 0.6,
+                range: 400,
+                pierce: 0,
+                projectileSize: 10,
+                color: '#f5f5f5',
+                emoji: '🦴',
+                evolvedEmoji: '💀',
+                evolvedName: 'Skeleton Army',
+                description: 'Throws bones in random directions',
+                mechanic: 'random_spread'
+            },
+            laser: {
+                name: 'Laser',
+                damage: 8,
+                speed: 800,
+                cooldownTime: 0.4,
+                range: 600,
+                pierce: 999,
+                projectileSize: 8,
+                color: '#ff0000',
+                emoji: '🔴',
+                evolvedEmoji: '🔴',
+                evolvedName: 'Death Ray',
+                description: 'Piercing laser beam',
+                mechanic: 'beam'
+            },
+            knife: {
+                name: 'Knife Ring',
+                damage: 16,
+                speed: 0,
+                cooldownTime: 0.1,
+                range: 100,
+                pierce: 1,
+                projectileSize: 10,
+                color: '#c0c0c0',
+                emoji: '🔪',
+                evolvedEmoji: '⚙️',
+                evolvedName: 'Blade Vortex',
+                description: 'Knives orbit around you',
+                mechanic: 'orbital_continuous'
+            },
+            music: {
+                name: 'Music Note',
+                damage: 10,
+                speed: 280,
+                cooldownTime: 0.5,
+                range: 300,
+                pierce: 2,
+                projectileSize: 10,
+                color: '#ff69b4',
+                emoji: '🎵',
+                evolvedEmoji: '🎶',
+                evolvedName: 'Symphony',
+                description: 'Notes bounce between enemies',
+                mechanic: 'bouncing'
+            },
+            poison: {
+                name: 'Poison Cloud',
+                damage: 15,
+                speed: 200,
+                cooldownTime: 2.0,
+                range: 350,
+                pierce: 0,
+                projectileSize: 15,
+                color: '#9acd32',
+                emoji: '☠️',
+                evolvedEmoji: '☣️',
+                evolvedName: 'Toxic Plague',
+                description: 'Leaves poison puddles',
+                mechanic: 'puddle'
             }
         };
 
@@ -139,12 +305,13 @@ class Weapon {
     update(dt, player, enemies) {
         this.cooldown -= dt;
 
-        // Orbital weapons (evolved axes)
-        if (this.isEvolved() && this.config.mechanic === 'boomerang') {
+        // Orbital weapons (evolved axes + orbital_continuous)
+        if ((this.isEvolved() && this.config.mechanic === 'boomerang') || this.config.mechanic === 'orbital_continuous') {
             this.orbitAngle += dt * 2;
-            // Keep 3 axes orbiting
-            while (this.projectiles.length < 3) {
-                const angle = this.orbitAngle + (this.projectiles.length * Math.PI * 2 / 3);
+            const orbitalCount = this.config.mechanic === 'orbital_continuous' ? (2 + this.level) : 3;
+            // Keep orbital projectiles
+            while (this.projectiles.length < orbitalCount) {
+                const angle = this.orbitAngle + (this.projectiles.length * Math.PI * 2 / orbitalCount);
                 this.projectiles.push({
                     x: player.x,
                     y: player.y,
@@ -156,13 +323,46 @@ class Weapon {
             }
         }
 
+        // Aura continuous mechanic (garlic)
+        if (this.config.mechanic === 'aura_continuous') {
+            const auraRange = this.getRange();
+            for (let enemy of enemies) {
+                if (enemy.dead) continue;
+                const dist = distance(player.x, player.y, enemy.x, enemy.y);
+                if (dist < auraRange) {
+                    enemy.takeDamage(this.getDamage() * dt * 0.5);
+                }
+            }
+        }
+
         // Update projectiles
         for (let i = this.projectiles.length - 1; i >= 0; i--) {
             const proj = this.projectiles[i];
 
+            // Puddles (poison clouds, holy water)
+            if (proj.puddle) {
+                proj.lifetime = (proj.lifetime || 0) + dt;
+                if (proj.lifetime > 3) {
+                    this.projectiles.splice(i, 1);
+                    continue;
+                }
+                // Damage enemies in puddle
+                proj.hitCooldown = (proj.hitCooldown || 0) - dt;
+                if (proj.hitCooldown <= 0) {
+                    for (let enemy of enemies) {
+                        if (enemy.dead) continue;
+                        if (circleCollision(proj.x, proj.y, proj.radius || 40, enemy.x, enemy.y, enemy.size)) {
+                            enemy.takeDamage(this.getDamage() * 0.3);
+                        }
+                    }
+                    proj.hitCooldown = 0.5;
+                }
+                continue;
+            }
+
             // Orbital projectiles
             if (proj.orbital) {
-                const radius = 80;
+                const radius = this.config.mechanic === 'orbital_continuous' ? (60 + this.level * 5) : 80;
                 proj.angle += dt * 2;
                 proj.x = player.x + Math.cos(proj.angle) * radius;
                 proj.y = player.y + Math.sin(proj.angle) * radius;
@@ -203,6 +403,30 @@ class Weapon {
                 }
             }
 
+            // Bouncing projectiles (music notes)
+            if (this.config.mechanic === 'bouncing' && proj.bounces > 0) {
+                proj.bounceTimer = (proj.bounceTimer || 0) + dt;
+                if (proj.bounceTimer > 0.3) {
+                    // Find nearest enemy to bounce to
+                    let nearest = null;
+                    let minDist = Infinity;
+                    for (let enemy of enemies) {
+                        if (enemy.dead || enemy === proj.lastHit) continue;
+                        const dist = distance(proj.x, proj.y, enemy.x, enemy.y);
+                        if (dist < 200 && dist < minDist) {
+                            minDist = dist;
+                            nearest = enemy;
+                        }
+                    }
+                    if (nearest) {
+                        const angle = Math.atan2(nearest.y - proj.y, nearest.x - proj.x);
+                        proj.vx = Math.cos(angle) * this.config.speed;
+                        proj.vy = Math.sin(angle) * this.config.speed;
+                        proj.bounceTimer = 0;
+                    }
+                }
+            }
+
             proj.x += proj.vx * dt;
             proj.y += proj.vy * dt;
             proj.traveled += this.config.speed * dt;
@@ -212,6 +436,16 @@ class Weapon {
                 // Explosion mechanic
                 if (this.config.mechanic === 'explosion') {
                     this.createExplosion(proj.x, proj.y, enemies);
+                }
+                // Puddle mechanic - leave a puddle when projectile expires
+                if (this.config.mechanic === 'puddle') {
+                    this.projectiles.push({
+                        x: proj.x,
+                        y: proj.y,
+                        puddle: true,
+                        radius: 40 + this.level * 5,
+                        lifetime: 0
+                    });
                 }
                 this.projectiles.splice(i, 1);
                 continue;
@@ -228,6 +462,13 @@ class Weapon {
                     const damage = this.getDamage() * (isCrit ? 2 : 1);
                     enemy.takeDamage(damage);
 
+                    // Freeze mechanic
+                    if (this.config.mechanic === 'freeze') {
+                        enemy.frozenTimer = 2 + this.level * 0.5;
+                        enemy.originalSpeed = enemy.speed;
+                        enemy.speed *= 0.3; // Slow to 30% speed
+                    }
+
                     // Chain lightning
                     if (this.config.mechanic === 'chain' && proj.hits === 0) {
                         this.chainToNearbyEnemies(proj.x, proj.y, enemy, enemies, Math.floor(this.level / 2));
@@ -236,6 +477,18 @@ class Weapon {
                     // Explosion on hit for evolved fireball
                     if (this.config.mechanic === 'explosion' && this.isEvolved()) {
                         this.createExplosion(proj.x, proj.y, enemies);
+                    }
+
+                    // Bouncing mechanic
+                    if (this.config.mechanic === 'bouncing') {
+                        proj.bounces = (proj.bounces || 3 + Math.floor(this.level / 2)) - 1;
+                        proj.lastHit = enemy;
+                        proj.bounceTimer = 0;
+                        if (proj.bounces <= 0) {
+                            this.projectiles.splice(i, 1);
+                            break;
+                        }
+                        continue;
                     }
 
                     proj.hits++;
@@ -248,18 +501,164 @@ class Weapon {
             }
         }
 
-        // Shoot at nearest enemy
-        if (this.cooldown <= 0 && enemies.length > 0) {
-            // Don't shoot if orbital
-            if (this.isEvolved() && this.config.mechanic === 'boomerang') {
+        // Update frozen enemies
+        for (let enemy of enemies) {
+            if (enemy.frozenTimer) {
+                enemy.frozenTimer -= dt;
+                if (enemy.frozenTimer <= 0) {
+                    enemy.speed = enemy.originalSpeed || enemy.config.speed;
+                    delete enemy.frozenTimer;
+                    delete enemy.originalSpeed;
+                }
+            }
+        }
+
+        // Weapon-specific mechanics that trigger on cooldown
+        if (this.cooldown <= 0) {
+            // Screen nuke (pentagram)
+            if (this.config.mechanic === 'screen_nuke') {
+                const nukeRange = this.getRange();
+                for (let enemy of enemies) {
+                    if (enemy.dead) continue;
+                    enemy.takeDamage(this.getDamage());
+                }
+                // Visual effect
+                if (window.currentGame) {
+                    window.currentGame.explosions.push({
+                        x: player.x,
+                        y: player.y,
+                        radius: 0,
+                        life: 1.0,
+                        maxLife: 1.0,
+                        color: this.config.color,
+                        screenWide: true
+                    });
+                }
                 this.cooldown = this.getCooldownTime();
                 return;
             }
 
-            const target = this.findNearestEnemy(player, enemies);
-            if (target && distance(player.x, player.y, target.x, target.y) < this.getRange()) {
-                this.shoot(player, target);
+            // Aura explosion (cross)
+            if (this.config.mechanic === 'aura') {
+                const auraRange = this.getRange();
+                for (let enemy of enemies) {
+                    if (enemy.dead) continue;
+                    const dist = distance(player.x, player.y, enemy.x, enemy.y);
+                    if (dist < auraRange) {
+                        enemy.takeDamage(this.getDamage());
+                    }
+                }
+                // Visual effect
+                if (window.currentGame) {
+                    window.currentGame.explosions.push({
+                        x: player.x,
+                        y: player.y,
+                        radius: 0,
+                        life: 0.5,
+                        maxLife: 0.5,
+                        color: this.config.color,
+                        maxRadius: auraRange
+                    });
+                }
                 this.cooldown = this.getCooldownTime();
+                return;
+            }
+
+            // Arc attack (whip)
+            if (this.config.mechanic === 'arc') {
+                const target = this.findNearestEnemy(player, enemies);
+                if (target) {
+                    const baseAngle = Math.atan2(target.y - player.y, target.x - player.x);
+                    const arcWidth = 0.8; // ~90 degrees
+                    for (let enemy of enemies) {
+                        if (enemy.dead) continue;
+                        const dist = distance(player.x, player.y, enemy.x, enemy.y);
+                        if (dist > this.getRange()) continue;
+
+                        const angle = Math.atan2(enemy.y - player.y, enemy.x - player.x);
+                        let angleDiff = Math.abs(angle - baseAngle);
+                        if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
+
+                        if (angleDiff < arcWidth) {
+                            enemy.takeDamage(this.getDamage());
+                        }
+                    }
+                }
+                this.cooldown = this.getCooldownTime();
+                return;
+            }
+
+            // Beam (laser) - instant hit
+            if (this.config.mechanic === 'beam') {
+                const target = this.findNearestEnemy(player, enemies);
+                if (target) {
+                    const angle = Math.atan2(target.y - player.y, target.x - player.x);
+                    // Hit all enemies in a line
+                    for (let enemy of enemies) {
+                        if (enemy.dead) continue;
+                        const dist = distance(player.x, player.y, enemy.x, enemy.y);
+                        if (dist > this.getRange()) continue;
+
+                        const enemyAngle = Math.atan2(enemy.y - player.y, enemy.x - player.x);
+                        let angleDiff = Math.abs(enemyAngle - angle);
+                        if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
+
+                        if (angleDiff < 0.1) { // Very narrow beam
+                            enemy.takeDamage(this.getDamage());
+                        }
+                    }
+                    // Create visual beam projectile
+                    this.projectiles.push({
+                        x: player.x,
+                        y: player.y,
+                        vx: Math.cos(angle) * this.config.speed,
+                        vy: Math.sin(angle) * this.config.speed,
+                        traveled: 0,
+                        hits: 999,
+                        beam: true,
+                        lifetime: 0.1
+                    });
+                }
+                this.cooldown = this.getCooldownTime();
+                return;
+            }
+
+            // Normal shooting mechanics
+            if (enemies.length > 0) {
+                // Don't shoot if orbital
+                if ((this.isEvolved() && this.config.mechanic === 'boomerang') ||
+                    this.config.mechanic === 'orbital_continuous' ||
+                    this.config.mechanic === 'aura_continuous') {
+                    this.cooldown = this.getCooldownTime();
+                    return;
+                }
+
+                // Random spread (bones)
+                if (this.config.mechanic === 'random_spread') {
+                    const count = 3 + Math.floor(this.level / 2);
+                    for (let i = 0; i < count; i++) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const vx = Math.cos(angle) * this.config.speed;
+                        const vy = Math.sin(angle) * this.config.speed;
+                        this.projectiles.push({
+                            x: player.x,
+                            y: player.y,
+                            vx: vx,
+                            vy: vy,
+                            traveled: 0,
+                            hits: 0,
+                            angle: angle
+                        });
+                    }
+                    this.cooldown = this.getCooldownTime();
+                    return;
+                }
+
+                const target = this.findNearestEnemy(player, enemies);
+                if (target && distance(player.x, player.y, target.x, target.y) < this.getRange()) {
+                    this.shoot(player, target);
+                    this.cooldown = this.getCooldownTime();
+                }
             }
         }
     }
@@ -365,8 +764,40 @@ class Weapon {
         for (let proj of this.projectiles) {
             ctx.save();
 
+            // Puddles
+            if (proj.puddle) {
+                ctx.globalAlpha = 0.3 + Math.sin(proj.lifetime * 3) * 0.1;
+                ctx.fillStyle = this.config.color;
+                ctx.beginPath();
+                ctx.arc(proj.x, proj.y, proj.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+                ctx.restore();
+                continue;
+            }
+
+            // Beams (laser visual)
+            if (proj.beam) {
+                ctx.globalAlpha = 0.8;
+                ctx.strokeStyle = this.config.color;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(proj.x - proj.vx * 0.1, proj.y - proj.vy * 0.1);
+                ctx.lineTo(proj.x, proj.y);
+                ctx.stroke();
+                ctx.globalAlpha = 1.0;
+                ctx.restore();
+                continue;
+            }
+
+            // Aura continuous (garlic) - visual circle around player
+            if (this.config.mechanic === 'aura_continuous' && proj.orbital === undefined) {
+                // Skip rendering for aura_continuous as it's handled elsewhere
+                continue;
+            }
+
             // Rotate axes and orbital weapons
-            if (this.type === 'axe' || proj.orbital) {
+            if (this.type === 'axe' || this.type === 'knife' || this.type === 'bible' || proj.orbital) {
                 ctx.translate(proj.x, proj.y);
                 const rotation = proj.orbital ? proj.angle : proj.traveled * 0.1;
                 ctx.rotate(rotation);
@@ -375,6 +806,19 @@ class Weapon {
                 ctx.fillText(this.getEmoji(), proj.x, proj.y);
             }
 
+            ctx.restore();
+        }
+
+        // Draw aura continuous visual effect
+        if (this.config.mechanic === 'aura_continuous') {
+            ctx.save();
+            ctx.globalAlpha = 0.15 + Math.sin(Date.now() * 0.005) * 0.05;
+            ctx.strokeStyle = this.config.color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, 0, this.getRange(), 0, Math.PI * 2); // Will be centered on player
+            ctx.stroke();
+            ctx.globalAlpha = 1.0;
             ctx.restore();
         }
 
