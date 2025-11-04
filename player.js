@@ -4,18 +4,18 @@ class Player {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.size = 20;
-        this.speed = 200;
+        this.size = GameConfig.player.baseSize;
+        this.speed = GameConfig.player.baseSpeed;
 
         // Stats
-        this.maxHp = 100;
+        this.maxHp = GameConfig.player.baseMaxHp;
         this.hp = this.maxHp;
         this.level = 1;
         this.xp = 0;
-        this.xpToNextLevel = 10;
+        this.xpToNextLevel = GameConfig.player.initialXpToNextLevel;
 
         // Weapons
-        this.weapons = [new Weapon('dagger')];
+        this.weapons = [new Weapon(GameConfig.player.startingWeapon)];
 
         // Power-up states
         this.speedMultiplier = 1;
@@ -42,13 +42,13 @@ class Player {
         const academyLevel = village.buildings.academy.level;
         const workshopLevel = village.buildings.workshop.level;
 
-        this.damageBonus = 1 + armoryLevel * 0.1;
-        this.hpBonus = 1 + templeLevel * 0.1;
-        this.xpBonus = 1 + academyLevel * 0.15;
-        this.attackSpeedBonus = 1 + workshopLevel * 0.1;
+        this.damageBonus = 1 + armoryLevel * GameConfig.village.armoryDamagePerLevel;
+        this.hpBonus = 1 + templeLevel * GameConfig.village.templeHpPerLevel;
+        this.xpBonus = 1 + academyLevel * GameConfig.village.academyXpPerLevel;
+        this.attackSpeedBonus = 1 + workshopLevel * GameConfig.village.workshopAttackSpeedPerLevel;
 
         // Apply HP bonus
-        const newMaxHp = 100 * this.hpBonus;
+        const newMaxHp = GameConfig.player.baseMaxHp * this.hpBonus;
         const hpRatio = this.hp / this.maxHp;
         this.maxHp = newMaxHp;
         this.hp = newMaxHp * hpRatio;
@@ -112,10 +112,10 @@ class Player {
     levelUp() {
         this.level++;
         this.xp -= this.xpToNextLevel;
-        this.xpToNextLevel = Math.floor(this.xpToNextLevel * 1.5);
+        this.xpToNextLevel = Math.floor(this.xpToNextLevel * GameConfig.player.xpLevelScaling);
 
         // Heal on level up
-        this.heal(this.maxHp * 0.2);
+        this.heal(this.maxHp * GameConfig.player.levelUpHealPercent);
     }
 
     addWeapon(type) {
@@ -145,15 +145,17 @@ class Player {
 
     draw(ctx) {
         // Draw player as vampire emoji
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = this.invincible ? '#ffff00' : '#ff3366';
-        ctx.font = `${this.size * 2.5}px Arial`;
+        ctx.shadowBlur = GameConfig.visual.playerShadowBlur;
+        ctx.shadowColor = this.invincible ?
+            GameConfig.visual.playerInvincibleColor :
+            GameConfig.visual.playerNormalColor;
+        ctx.font = `${this.size * GameConfig.player.emojiSize}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
         // Flash when invincible
-        if (!this.invincible || Math.floor(Date.now() / 100) % 2 === 0) {
-            ctx.fillText('🧛', this.x, this.y);
+        if (!this.invincible || Math.floor(Date.now() / GameConfig.visual.invincibleFlashInterval) % 2 === 0) {
+            ctx.fillText(GameConfig.player.emoji, this.x, this.y);
         }
         ctx.shadowBlur = 0;
 

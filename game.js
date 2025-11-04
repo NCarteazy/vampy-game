@@ -44,27 +44,29 @@ class Game {
         this.comboTimer = 0;
         this.screenShake = 0;
 
-        // Upgrade system
-        this.availableUpgrades = [
-            { type: 'weapon', id: 'fireball', name: '🔥 Fireball', description: 'Shoots fireballs that pierce enemies' },
-            { type: 'weapon', id: 'lightning', name: '⚡ Lightning', description: 'Fast lightning bolts' },
-            { type: 'weapon', id: 'axe', name: '🪓 Spinning Axe', description: 'Heavy axes that pierce many enemies' },
-            { type: 'weapon', id: 'holy', name: '💧 Holy Water', description: 'Rapid holy water shots' },
-            { type: 'weapon', id: 'bible', name: '📖 Holy Book', description: 'Orbiting pages protect you' },
-            { type: 'weapon', id: 'cross', name: '✝️ Crucifix', description: 'Creates holy explosions around you' },
-            { type: 'weapon', id: 'garlic', name: '🧄 Garlic', description: 'Damages nearby enemies continuously' },
-            { type: 'weapon', id: 'whip', name: '🎀 Whip', description: 'Slashes in an arc in front' },
-            { type: 'weapon', id: 'frost', name: '❄️ Ice Shard', description: 'Freezes and slows enemies' },
-            { type: 'weapon', id: 'pentagram', name: '⭐ Pentagram', description: 'Massive screen-wide damage' },
-            { type: 'weapon', id: 'bones', name: '🦴 Bone', description: 'Throws bones in random directions' },
-            { type: 'weapon', id: 'laser', name: '🔴 Laser', description: 'Piercing laser beam' },
-            { type: 'weapon', id: 'knife', name: '🔪 Knife Ring', description: 'Knives orbit around you' },
-            { type: 'weapon', id: 'music', name: '🎵 Music Note', description: 'Notes bounce between enemies' },
-            { type: 'weapon', id: 'poison', name: '☠️ Poison Cloud', description: 'Leaves poison puddles' },
-            { type: 'stat', id: 'maxHp', name: '❤️ Max HP +20', description: 'Increase maximum health', amount: 20 },
-            { type: 'stat', id: 'speed', name: '💨 Speed +30', description: 'Increase movement speed', amount: 30 },
-            { type: 'stat', id: 'damage', name: '💪 Damage +15%', description: 'Increase all damage', amount: 0.15 }
-        ];
+        // Upgrade system - weapons from config, stats from config
+        this.availableUpgrades = [];
+
+        // Add all weapons from WeaponConfigs
+        for (const [id, config] of Object.entries(WeaponConfigs)) {
+            this.availableUpgrades.push({
+                type: 'weapon',
+                id: id,
+                name: `${config.emoji} ${config.name}`,
+                description: config.description
+            });
+        }
+
+        // Add stat upgrades from config
+        for (const [id, config] of Object.entries(GameConfig.ui.statUpgrades)) {
+            this.availableUpgrades.push({
+                type: 'stat',
+                id: id,
+                name: `${config.emoji} ${config.name}`,
+                description: config.description,
+                amount: config.amount
+            });
+        }
     }
 
     resizeCanvas() {
@@ -118,7 +120,7 @@ class Game {
         if (!this.running) return;
 
         const now = performance.now();
-        const dt = Math.min((now - this.lastTime) / 1000, 0.1);
+        const dt = Math.min((now - this.lastTime) / 1000, GameConfig.performance.maxDeltaTime);
         this.lastTime = now;
 
         if (!this.paused) {
@@ -138,7 +140,7 @@ class Game {
         }
 
         // Update screen shake
-        this.screenShake = Math.max(0, this.screenShake - dt * 10);
+        this.screenShake = Math.max(0, this.screenShake - dt * GameConfig.combat.screenShakeDecay);
 
         // Update active power-ups
         for (let key in this.activePowerUps) {
@@ -146,7 +148,7 @@ class Game {
         }
 
         // Apply power-up effects
-        const speedMultiplier = this.activePowerUps.speed > 0 ? 1.5 : 1;
+        const speedMultiplier = this.activePowerUps.speed > 0 ? GameConfig.powerUps.speedMultiplier : 1;
         this.player.speedMultiplier = speedMultiplier;
         this.player.invincible = this.activePowerUps.invincible > 0;
 
@@ -169,24 +171,24 @@ class Game {
 
                 // Combo system
                 this.combo++;
-                this.comboTimer = 2.0; // 2 seconds to keep combo
+                this.comboTimer = GameConfig.combat.comboTimeout;
 
                 // Create death particles
                 this.createDeathParticles(enemy.x, enemy.y, enemy.config.emoji);
 
                 // Drop XP (more with combo)
-                const xpBonus = 1 + (this.combo * 0.1);
+                const xpBonus = 1 + (this.combo * GameConfig.combat.comboXpBonus);
                 this.dropXP(enemy.x, enemy.y, Math.floor(enemy.xpValue * xpBonus));
 
                 // Chance to drop gold pickup
-                if (Math.random() < 0.3) {
-                    this.dropGold(enemy.x, enemy.y, enemy.goldValue * 2);
+                if (Math.random() < GameConfig.pickups.goldDropChance) {
+                    this.dropGold(enemy.x, enemy.y, enemy.goldValue * GameConfig.pickups.goldDropMultiplier);
                 }
 
                 // Boss drops power-up
                 if (enemy.type === 'boss') {
                     this.dropPowerUp(enemy.x, enemy.y);
-                    this.screenShake = 1.0;
+                    this.screenShake = GameConfig.combat.screenShakeDuration;
                 }
 
                 enemies.splice(i, 1);
@@ -199,7 +201,7 @@ class Game {
             p.life -= dt;
             p.x += p.vx * dt;
             p.y += p.vy * dt;
-            p.vy += 200 * dt; // Gravity
+            p.vy += GameConfig.pickups.particleGravity * dt; // Gravity
 
             if (p.life <= 0) {
                 this.particles.splice(i, 1);
@@ -210,7 +212,7 @@ class Game {
         for (let i = this.explosions.length - 1; i >= 0; i--) {
             const exp = this.explosions[i];
             exp.life -= dt;
-            exp.radius += dt * 150;
+            exp.radius += dt * GameConfig.visual.explosionGrowthRate;
 
             if (exp.life <= 0) {
                 this.explosions.splice(i, 1);
@@ -218,7 +220,9 @@ class Game {
         }
 
         // Update pickups
-        const magnetRange = this.activePowerUps.magnet > 0 ? 300 : 100;
+        const magnetRange = this.activePowerUps.magnet > 0 ?
+            GameConfig.powerUps.magnetRange :
+            GameConfig.powerUps.normalMagnetRange;
         for (let pickup of this.pickups) {
             // Move towards player if close
             const dist = distance(pickup.x, pickup.y, this.player.x, this.player.y);
@@ -226,12 +230,12 @@ class Game {
                 const dx = this.player.x - pickup.x;
                 const dy = this.player.y - pickup.y;
                 const norm = normalizeVector(dx, dy);
-                pickup.x += norm.x * 300 * dt;
-                pickup.y += norm.y * 300 * dt;
+                pickup.x += norm.x * GameConfig.pickups.pickupMagnetSpeed * dt;
+                pickup.y += norm.y * GameConfig.pickups.pickupMagnetSpeed * dt;
             }
 
             // Check collision with player
-            if (circleCollision(pickup.x, pickup.y, 10, this.player.x, this.player.y, this.player.size)) {
+            if (circleCollision(pickup.x, pickup.y, GameConfig.pickups.pickupSize, this.player.x, this.player.y, this.player.size)) {
                 if (pickup.type === 'xp') {
                     const leveledUp = this.player.gainXP(pickup.value);
                     if (leveledUp) {
@@ -289,7 +293,7 @@ class Game {
 
         // Draw stars background
         this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < GameConfig.visual.starCount; i++) {
             const x = (i * 173) % this.canvas.width;
             const y = (i * 271) % this.canvas.height;
             const size = (i % 3) + 1;
@@ -297,9 +301,9 @@ class Game {
         }
 
         // Draw grid for depth
-        this.ctx.strokeStyle = 'rgba(100, 100, 150, 0.05)';
+        this.ctx.strokeStyle = `rgba(100, 100, 150, ${GameConfig.visual.gridOpacity})`;
         this.ctx.lineWidth = 1;
-        const gridSize = 50;
+        const gridSize = GameConfig.visual.gridSize;
         for (let x = 0; x < this.canvas.width; x += gridSize) {
             this.ctx.beginPath();
             this.ctx.moveTo(x, 0);
@@ -318,7 +322,7 @@ class Game {
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         for (let pickup of this.pickups) {
-            const emoji = pickup.type === 'xp' ? '💎' : '🪙';
+            const emoji = pickup.type === 'xp' ? GameConfig.pickups.xpEmoji : GameConfig.pickups.goldEmoji;
             this.ctx.shadowBlur = 10;
             this.ctx.shadowColor = pickup.type === 'xp' ? '#00ff00' : '#ffd700';
             this.ctx.fillText(emoji, pickup.x, pickup.y);
@@ -328,10 +332,9 @@ class Game {
         // Draw power-ups
         this.ctx.font = '28px Arial';
         for (let powerUp of this.powerUps) {
-            const emojis = { speed: '⚡', invincible: '⭐', magnet: '🧲' };
             this.ctx.shadowBlur = 15;
             this.ctx.shadowColor = '#ffff00';
-            this.ctx.fillText(emojis[powerUp.type], powerUp.x, powerUp.y);
+            this.ctx.fillText(GameConfig.powerUps.emojis[powerUp.type], powerUp.x, powerUp.y);
             this.ctx.shadowBlur = 0;
         }
 
@@ -387,8 +390,7 @@ class Game {
     }
 
     dropPowerUp(x, y) {
-        const types = ['speed', 'invincible', 'magnet'];
-        const type = randomChoice(types);
+        const type = randomChoice(GameConfig.powerUps.types);
         this.powerUps.push({
             x: x,
             y: y,
@@ -398,14 +400,12 @@ class Game {
     }
 
     activatePowerUp(type) {
-        const duration = 10; // 10 seconds
-        this.activePowerUps[type] = duration;
+        this.activePowerUps[type] = GameConfig.powerUps.duration;
 
         // Create particles
-        const emojis = { speed: '⚡', invincible: '⭐', magnet: '🧲' };
-        for (let i = 0; i < 12; i++) {
-            const angle = (Math.PI * 2 * i) / 12;
-            const speed = randomRange(100, 200);
+        for (let i = 0; i < GameConfig.powerUps.particleCount; i++) {
+            const angle = (Math.PI * 2 * i) / GameConfig.powerUps.particleCount;
+            const speed = randomRange(GameConfig.pickups.particleSpeedMin, GameConfig.pickups.particleSpeedMax);
             this.particles.push({
                 x: this.player.x,
                 y: this.player.y,
@@ -413,22 +413,22 @@ class Game {
                 vy: Math.sin(angle) * speed,
                 life: 1.0,
                 maxLife: 1.0,
-                emoji: emojis[type]
+                emoji: GameConfig.powerUps.emojis[type]
             });
         }
     }
 
     createDeathParticles(x, y, emoji) {
         // Create multiple particles
-        for (let i = 0; i < 8; i++) {
-            const angle = (Math.PI * 2 * i) / 8;
-            const speed = randomRange(50, 150);
+        for (let i = 0; i < GameConfig.pickups.deathParticleCount; i++) {
+            const angle = (Math.PI * 2 * i) / GameConfig.pickups.deathParticleCount;
+            const speed = randomRange(GameConfig.pickups.particleSpeedMin, GameConfig.pickups.particleSpeedMax);
             this.particles.push({
                 x: x,
                 y: y,
                 vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed - 100,
-                life: randomRange(0.5, 1.0),
+                vy: Math.sin(angle) * speed + GameConfig.pickups.particleUpwardVelocity,
+                life: randomRange(GameConfig.pickups.particleLifetimeMin, GameConfig.pickups.particleLifetimeMax),
                 maxLife: 1.0,
                 emoji: emoji
             });
@@ -458,8 +458,8 @@ class Game {
             }
         }
 
-        // Pick 3 random
-        for (let i = 0; i < 3 && availableOptions.length > 0; i++) {
+        // Pick random upgrade choices
+        for (let i = 0; i < GameConfig.ui.upgradeChoiceCount && availableOptions.length > 0; i++) {
             const index = randomInt(0, availableOptions.length - 1);
             choices.push(availableOptions[index]);
             availableOptions.splice(index, 1);
