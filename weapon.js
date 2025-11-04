@@ -67,12 +67,21 @@ class Weapon {
     update(dt, player, enemies) {
         this.cooldown -= dt;
 
-        // Orbital weapons (evolved axes + orbital_continuous)
+        // ========== ORBITAL WEAPONS ==========
+        // Mechanic: Projectiles continuously orbit around the player
+        // Used by: Evolved Axe (Orbital Blades), Bible, Knife Ring
+        // Implementation: Maintains a fixed number of projectiles evenly spaced in a circle
+        // The projectiles rotate around the player and damage enemies on contact
         if ((this.isEvolved() && this.config.mechanic === 'boomerang') || this.config.mechanic === 'orbital_continuous') {
-            this.orbitAngle += dt * 2;
+            this.orbitAngle += dt * 2; // Rotation speed (radians per second)
+
+            // Scale orbital count with level for orbital_continuous weapons
             const orbitalCount = this.config.mechanic === 'orbital_continuous' ? (2 + this.level) : 3;
-            // Keep orbital projectiles
+
+            // Maintain the correct number of orbital projectiles
+            // We add projectiles until we reach the target count
             while (this.projectiles.length < orbitalCount) {
+                // Distribute projectiles evenly around the circle (2π / count)
                 const angle = this.orbitAngle + (this.projectiles.length * Math.PI * 2 / orbitalCount);
                 this.projectiles.push({
                     x: player.x,
@@ -80,84 +89,122 @@ class Weapon {
                     orbital: true,
                     angle: angle,
                     hits: 0,
-                    hitCooldown: 0
+                    hitCooldown: 0 // Prevents hitting same enemy too frequently
                 });
             }
         }
 
-        // Aura continuous mechanic (garlic)
+        // ========== AURA CONTINUOUS MECHANIC ==========
+        // Mechanic: Constantly damages all enemies within range every frame
+        // Used by: Garlic (Soul Eater when evolved)
+        // Implementation: Simple distance check, damage scaled by dt for frame-rate independence
+        // The 0.5 multiplier prevents the constant damage from being too strong
         if (this.config.mechanic === 'aura_continuous') {
             const auraRange = this.getRange();
             for (let enemy of enemies) {
                 if (enemy.dead) continue;
                 const dist = distance(player.x, player.y, enemy.x, enemy.y);
                 if (dist < auraRange) {
+                    // Multiply by dt to make damage frame-rate independent
+                    // 0.5 multiplier because this happens every frame
                     enemy.takeDamage(this.getDamage() * dt * 0.5);
                 }
             }
         }
 
-        // Update projectiles
+        // ========== PROJECTILE UPDATE LOOP ==========
+        // Iterate backwards so we can safely remove projectiles during iteration
         for (let i = this.projectiles.length - 1; i >= 0; i--) {
             const proj = this.projectiles[i];
 
-            // Puddles (poison clouds, holy water)
+            // ========== PUDDLE PROJECTILES ==========
+            // Mechanic: Creates area-of-effect zones that damage enemies over time
+            // Used by: Holy Water, Poison Cloud
+            // Implementation: Puddles are stationary and periodically damage enemies inside
             if (proj.puddle) {
                 proj.lifetime = (proj.lifetime || 0) + dt;
+
+                // Remove puddles after 3 seconds
                 if (proj.lifetime > 3) {
                     this.projectiles.splice(i, 1);
                     continue;
                 }
-                // Damage enemies in puddle
+
+                // Damage enemies in puddle area periodically
+                // Hit cooldown prevents applying damage every frame (would be too strong)
                 proj.hitCooldown = (proj.hitCooldown || 0) - dt;
                 if (proj.hitCooldown <= 0) {
                     for (let enemy of enemies) {
                         if (enemy.dead) continue;
+                        // Check if enemy is inside puddle radius
                         if (circleCollision(proj.x, proj.y, proj.radius || 40, enemy.x, enemy.y, enemy.size)) {
+                            // Reduced damage (30%) since puddles last 3 seconds
                             enemy.takeDamage(this.getDamage() * 0.3);
                         }
                     }
+                    // Reset cooldown: enemies can be hit every 0.5 seconds
                     proj.hitCooldown = 0.5;
                 }
                 continue;
             }
 
-            // Orbital projectiles
+            // ========== ORBITAL PROJECTILE MOVEMENT ==========
+            // These projectiles circle around the player continuously
             if (proj.orbital) {
+                // Radius scales with level for orbital_continuous weapons
                 const radius = this.config.mechanic === 'orbital_continuous' ? (60 + this.level * 5) : 80;
+
+                // Update angle to rotate projectile
                 proj.angle += dt * 2;
+
+                // Calculate position using polar coordinates
                 proj.x = player.x + Math.cos(proj.angle) * radius;
                 proj.y = player.y + Math.sin(proj.angle) * radius;
+
+                // Update hit cooldown
                 proj.hitCooldown -= dt;
 
-                // Check collisions
+                // Check collisions with enemies
+                // Only check when cooldown expired to prevent hitting same enemy too frequently
                 if (proj.hitCooldown <= 0) {
                     for (let enemy of enemies) {
                         if (enemy.dead) continue;
                         if (circleCollision(proj.x, proj.y, this.config.projectileSize * 2,
                                            enemy.x, enemy.y, enemy.size)) {
+                            // Apply crit chance
                             const isCrit = Math.random() < GameConfig.combat.critChance;
                             const damage = this.getDamage() * (isCrit ? GameConfig.combat.critMultiplier : 1);
                             enemy.takeDamage(damage);
+
+                            // Reset cooldown to prevent immediate re-hit
                             proj.hitCooldown = GameConfig.combat.orbitalHitCooldown;
-                            break;
+                            break; // Only hit one enemy per frame
                         }
                     }
                 }
                 continue;
             }
 
-            // Boomerang mechanic
+            // ========== BOOMERANG MECHANIC ==========
+            // Mechanic: Projectile flies out, then returns to player
+            // Used by: Axe (before evolution)
+            // Implementation: After 1 second, projectile reverses direction towards player
+            // When evolved, this weapon becomes orbital instead
             if (this.config.mechanic === 'boomerang' && !this.isEvolved()) {
                 proj.lifetime = (proj.lifetime || 0) + dt;
+
+                // After 1 second, start returning to player
                 if (proj.lifetime > 1.0) {
-                    // Return to player
+                    // Calculate direction towards player
                     const dx = player.x - proj.x;
                     const dy = player.y - proj.y;
                     const norm = normalizeVector(dx, dy);
+
+                    // Return faster than outward speed (1.5x)
                     proj.vx = norm.x * this.config.speed * 1.5;
                     proj.vy = norm.y * this.config.speed * 1.5;
 
+                    // Remove projectile when it reaches player
                     if (distance(proj.x, proj.y, player.x, player.y) < 30) {
                         this.projectiles.splice(i, 1);
                         continue;
@@ -165,96 +212,128 @@ class Weapon {
                 }
             }
 
-            // Bouncing projectiles (music notes)
+            // ========== BOUNCING MECHANIC ==========
+            // Mechanic: Projectile chains between multiple enemies
+            // Used by: Music Notes
+            // Implementation: After hitting enemy, seeks next nearest enemy within range
+            // Tracks last hit enemy to prevent bouncing back to same target
             if (this.config.mechanic === 'bouncing' && proj.bounces > 0) {
                 proj.bounceTimer = (proj.bounceTimer || 0) + dt;
+
+                // Check for next bounce target every 0.3 seconds
                 if (proj.bounceTimer > 0.3) {
-                    // Find nearest enemy to bounce to
+                    // Find nearest enemy to bounce to (excluding last hit)
                     let nearest = null;
                     let minDist = Infinity;
                     for (let enemy of enemies) {
+                        // Skip dead enemies and the one we just hit
                         if (enemy.dead || enemy === proj.lastHit) continue;
+
                         const dist = distance(proj.x, proj.y, enemy.x, enemy.y);
+                        // Only consider enemies within bounce range (200px)
                         if (dist < 200 && dist < minDist) {
                             minDist = dist;
                             nearest = enemy;
                         }
                     }
+
+                    // Redirect towards new target if found
                     if (nearest) {
                         const angle = Math.atan2(nearest.y - proj.y, nearest.x - proj.x);
                         proj.vx = Math.cos(angle) * this.config.speed;
                         proj.vy = Math.sin(angle) * this.config.speed;
-                        proj.bounceTimer = 0;
+                        proj.bounceTimer = 0; // Reset timer for next bounce check
                     }
                 }
             }
 
+            // ========== STANDARD PROJECTILE MOVEMENT ==========
+            // Update position based on velocity
             proj.x += proj.vx * dt;
             proj.y += proj.vy * dt;
             proj.traveled += this.config.speed * dt;
 
-            // Remove if out of range
+            // ========== RANGE CHECK ==========
+            // Remove projectiles that have traveled beyond their max range
             if (proj.traveled > this.getRange()) {
-                // Explosion mechanic
+                // Explosion mechanic: Create explosion when projectile expires
                 if (this.config.mechanic === 'explosion') {
                     this.createExplosion(proj.x, proj.y, enemies);
                 }
-                // Puddle mechanic - leave a puddle when projectile expires
+
+                // Puddle mechanic: Leave a damaging puddle when projectile expires
                 if (this.config.mechanic === 'puddle') {
                     this.projectiles.push({
                         x: proj.x,
                         y: proj.y,
                         puddle: true,
-                        radius: 40 + this.level * 5,
+                        radius: 40 + this.level * 5, // Scales with level
                         lifetime: 0
                     });
                 }
+
                 this.projectiles.splice(i, 1);
                 continue;
             }
 
-            // Check collisions with enemies
+            // ========== ENEMY COLLISION DETECTION ==========
             for (let enemy of enemies) {
                 if (enemy.dead) continue;
 
                 if (circleCollision(proj.x, proj.y, this.config.projectileSize,
                                    enemy.x, enemy.y, enemy.size)) {
-                    // Critical hit (20% chance for 2x damage)
+
+                    // Apply critical hit chance
                     const isCrit = Math.random() < 0.2;
                     const damage = this.getDamage() * (isCrit ? 2 : 1);
                     enemy.takeDamage(damage);
 
-                    // Freeze mechanic
+                    // ========== FREEZE MECHANIC ==========
+                    // Slows enemy movement speed for a duration
+                    // Used by: Ice Shard
                     if (this.config.mechanic === 'freeze') {
-                        enemy.frozenTimer = 2 + this.level * 0.5;
-                        enemy.originalSpeed = enemy.speed;
-                        enemy.speed *= 0.3; // Slow to 30% speed
+                        enemy.frozenTimer = 2 + this.level * 0.5; // Duration scales with level
+                        enemy.originalSpeed = enemy.speed; // Save original for restoration
+                        enemy.speed *= 0.3; // Reduce to 30% speed
                     }
 
-                    // Chain lightning
+                    // ========== CHAIN LIGHTNING MECHANIC ==========
+                    // Hits additional enemies near the initial target
+                    // Used by: Lightning
+                    // Only chains on first hit to prevent infinite chaining
                     if (this.config.mechanic === 'chain' && proj.hits === 0) {
-                        this.chainToNearbyEnemies(proj.x, proj.y, enemy, enemies, Math.floor(this.level / 2));
+                        const chainCount = Math.floor(this.level / 2);
+                        this.chainToNearbyEnemies(proj.x, proj.y, enemy, enemies, chainCount);
                     }
 
-                    // Explosion on hit for evolved fireball
+                    // ========== EXPLOSION ON HIT ==========
+                    // Evolved fireball creates explosion on every hit
                     if (this.config.mechanic === 'explosion' && this.isEvolved()) {
                         this.createExplosion(proj.x, proj.y, enemies);
                     }
 
-                    // Bouncing mechanic
+                    // ========== BOUNCING ON HIT ==========
+                    // Decrement bounce count and track last hit enemy
+                    // If out of bounces, remove projectile
                     if (this.config.mechanic === 'bouncing') {
+                        // Initialize bounces on first hit based on level
                         proj.bounces = (proj.bounces || 3 + Math.floor(this.level / 2)) - 1;
-                        proj.lastHit = enemy;
+                        proj.lastHit = enemy; // Prevent bouncing back to same enemy
                         proj.bounceTimer = 0;
+
+                        // Remove if no bounces remaining
                         if (proj.bounces <= 0) {
                             this.projectiles.splice(i, 1);
                             break;
                         }
-                        continue;
+                        continue; // Don't increment hits for bouncing projectiles
                     }
 
+                    // ========== PIERCE MECHANIC ==========
+                    // Track how many enemies this projectile has hit
                     proj.hits++;
 
+                    // Remove projectile if it exceeded pierce count
                     if (proj.hits > this.getPierce()) {
                         this.projectiles.splice(i, 1);
                         break;
@@ -263,10 +342,14 @@ class Weapon {
             }
         }
 
-        // Update frozen enemies
+        // ========== FREEZE TIMER UPDATE ==========
+        // Decrement freeze timers and restore enemy speed when expired
+        // This happens outside the projectile loop since freeze is an enemy state
         for (let enemy of enemies) {
             if (enemy.frozenTimer) {
                 enemy.frozenTimer -= dt;
+
+                // Restore original speed when freeze expires
                 if (enemy.frozenTimer <= 0) {
                     enemy.speed = enemy.originalSpeed || enemy.config.speed;
                     delete enemy.frozenTimer;
@@ -275,9 +358,14 @@ class Weapon {
             }
         }
 
-        // Weapon-specific mechanics that trigger on cooldown
+        // ========== COOLDOWN-BASED WEAPON MECHANICS ==========
+        // These mechanics trigger periodically based on weapon cooldown
+        // rather than firing projectiles continuously
         if (this.cooldown <= 0) {
-            // Screen nuke (pentagram)
+
+            // ========== SCREEN NUKE MECHANIC ==========
+            // Damages all enemies on screen simultaneously
+            // Used by: Pentagram
             if (this.config.mechanic === 'screen_nuke') {
                 const nukeRange = this.getRange();
                 for (let enemy of enemies) {
@@ -300,7 +388,9 @@ class Weapon {
                 return;
             }
 
-            // Aura explosion (cross)
+            // ========== AURA EXPLOSION MECHANIC ==========
+            // Periodic explosion centered on player
+            // Used by: Crucifix
             if (this.config.mechanic === 'aura') {
                 const auraRange = this.getRange();
                 for (let enemy of enemies) {
@@ -326,7 +416,9 @@ class Weapon {
                 return;
             }
 
-            // Arc attack (whip)
+            // ========== ARC ATTACK MECHANIC ==========
+            // Wide arc-shaped slash in front of player facing nearest enemy
+            // Used by: Whip
             if (this.config.mechanic === 'arc') {
                 const target = this.findNearestEnemy(player, enemies);
                 if (target) {
@@ -350,7 +442,9 @@ class Weapon {
                 return;
             }
 
-            // Beam (laser) - instant hit
+            // ========== BEAM MECHANIC ==========
+            // Instant-hit laser that pierces all enemies in a line
+            // Used by: Laser
             if (this.config.mechanic === 'beam') {
                 const target = this.findNearestEnemy(player, enemies);
                 if (target) {

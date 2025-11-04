@@ -79,6 +79,21 @@ class Enemy {
     }
 }
 
+/**
+ * EnemySpawner - Manages enemy spawning and difficulty scaling
+ *
+ * Difficulty System:
+ * - Starts at difficulty 1.0
+ * - Increases by 0.1 every 10 seconds
+ * - Spawn rate increases (interval decreases) with difficulty
+ * - Enemy HP scales up with difficulty
+ * - Enemy type distribution changes based on difficulty tier
+ *
+ * Boss System:
+ * - Bosses spawn every 30 seconds
+ * - Have significantly more HP that scales with difficulty
+ * - Drop power-ups when defeated
+ */
 class EnemySpawner {
     constructor() {
         this.enemies = [];
@@ -96,68 +111,98 @@ class EnemySpawner {
         this.difficultyTimer += dt;
         this.bossTimer += dt;
 
-        // Increase difficulty over time
+        // ========== DIFFICULTY SCALING ==========
+        // Every 10 seconds, increase difficulty and spawn rate
+        // This creates progressive challenge without overwhelming early game
         if (this.difficultyTimer > GameConfig.spawning.difficultyIncreaseInterval) {
             this.difficulty += GameConfig.spawning.difficultyIncrement;
+
+            // Spawn interval decreases (enemies spawn faster)
+            // Capped at minSpawnInterval to prevent impossible spawn rates
             this.spawnInterval = Math.max(
                 GameConfig.spawning.minSpawnInterval,
                 this.spawnInterval * GameConfig.spawning.spawnIntervalDecay
             );
+
             this.difficultyTimer = 0;
             this.waveNumber++;
         }
 
-        // Spawn boss
+        // ========== BOSS SPAWNING ==========
+        // Bosses spawn on a fixed timer (30s)
+        // Independent of regular enemy spawning
         if (this.bossTimer > this.bossInterval) {
             this.bossTimer = 0;
             this.spawnBoss(player, canvas);
         }
 
-        // Spawn enemies
+        // ========== REGULAR ENEMY SPAWNING ==========
+        // Spawn rate increases with difficulty
         if (this.spawnTimer > this.spawnInterval) {
             this.spawnTimer = 0;
             this.spawnEnemy(player, canvas);
         }
 
-        // Update enemies
+        // Update all enemies
         for (let enemy of this.enemies) {
             enemy.update(dt, player);
         }
 
-        // Remove dead enemies
+        // Clean up dead enemies
+        // Note: Dead enemies are kept temporarily for particle effects,
+        // then removed by game.js after processing drops
         this.enemies = this.enemies.filter(e => !e.dead);
     }
 
+    /**
+     * Spawns a regular enemy off-screen
+     *
+     * Spawn Algorithm:
+     * 1. Pick random screen edge (top, right, bottom, left)
+     * 2. Spawn 50px outside visible area
+     * 3. Select enemy type based on difficulty tier
+     * 4. Scale enemy HP based on current difficulty
+     *
+     * This ensures enemies enter from off-screen and difficulty scales smoothly
+     */
     spawnEnemy(player, canvas) {
-        // Spawn outside screen
+        // ========== SPAWN POSITION ==========
+        // Randomly choose which edge of screen to spawn from
         const side = randomInt(0, 3);
         let x, y;
 
-        const margin = GameConfig.spawning.spawnMargin;
+        const margin = GameConfig.spawning.spawnMargin; // 50px outside visible area
+
         switch (side) {
-            case 0: // Top
+            case 0: // Top edge
                 x = randomRange(-margin, canvas.width + margin);
                 y = -margin;
                 break;
-            case 1: // Right
+            case 1: // Right edge
                 x = canvas.width + margin;
                 y = randomRange(-margin, canvas.height + margin);
                 break;
-            case 2: // Bottom
+            case 2: // Bottom edge
                 x = randomRange(-margin, canvas.width + margin);
                 y = canvas.height + margin;
                 break;
-            case 3: // Left
+            case 3: // Left edge
                 x = -margin;
                 y = randomRange(-margin, canvas.height + margin);
                 break;
         }
 
-        // Choose enemy type based on difficulty using helper function
+        // ========== ENEMY TYPE SELECTION ==========
+        // Uses difficulty-based spawn weights from enemyConfigs.js
+        // Early game: Mostly basic enemies
+        // Mid game: Mix of fast, swarm, basic
+        // Late game: All types including tanks
         const type = selectEnemyType(this.difficulty);
 
+        // ========== HP SCALING ==========
+        // Create enemy and scale stats based on difficulty
+        // 30% HP increase per difficulty level above 1.0
         const enemy = new Enemy(x, y, type);
-        // Scale with difficulty
         const scaling = 1 + (this.difficulty - 1) * GameConfig.spawning.enemyHpScaling;
         enemy.hp *= scaling;
         enemy.maxHp *= scaling;

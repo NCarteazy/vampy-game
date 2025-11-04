@@ -36,22 +36,38 @@ class Player {
         this.goldCollected = 0;
     }
 
+    /**
+     * Apply permanent bonuses from village buildings
+     *
+     * Village System:
+     * - Armory: +10% damage per level
+     * - Temple: +10% max HP per level
+     * - Academy: +15% XP gain per level
+     * - Workshop: +10% attack speed per level
+     *
+     * HP Preservation:
+     * When HP bonus changes, maintains same HP percentage
+     * Example: If at 50% HP with 100 max, stays at 50% with new max
+     */
     applyVillageBonuses(village) {
         const armoryLevel = village.buildings.armory.level;
         const templeLevel = village.buildings.temple.level;
         const academyLevel = village.buildings.academy.level;
         const workshopLevel = village.buildings.workshop.level;
 
+        // Calculate multipliers (1.0 + level * bonus_per_level)
         this.damageBonus = 1 + armoryLevel * GameConfig.village.armoryDamagePerLevel;
         this.hpBonus = 1 + templeLevel * GameConfig.village.templeHpPerLevel;
         this.xpBonus = 1 + academyLevel * GameConfig.village.academyXpPerLevel;
         this.attackSpeedBonus = 1 + workshopLevel * GameConfig.village.workshopAttackSpeedPerLevel;
 
-        // Apply HP bonus
+        // ========== HP BONUS APPLICATION ==========
+        // Preserve HP percentage when max HP changes
+        // This prevents healing/damage when entering a run with different temple levels
         const newMaxHp = GameConfig.player.baseMaxHp * this.hpBonus;
-        const hpRatio = this.hp / this.maxHp;
+        const hpRatio = this.hp / this.maxHp; // Current HP percentage
         this.maxHp = newMaxHp;
-        this.hp = newMaxHp * hpRatio;
+        this.hp = newMaxHp * hpRatio; // Maintain same percentage
     }
 
     update(dt, keys, canvas) {

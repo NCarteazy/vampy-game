@@ -132,14 +132,32 @@ class Game {
         requestAnimationFrame(() => this.gameLoop());
     }
 
+    /**
+     * Main game update loop
+     *
+     * Handles:
+     * - Combo system (resets after 2s of no kills)
+     * - Screen shake effects
+     * - Power-up timers
+     * - Player/enemy updates
+     * - Collision detection
+     * - Particle effects
+     * - Pickup magnetism
+     * - Level-up detection
+     */
     update(dt) {
         this.time += dt;
+
+        // ========== COMBO SYSTEM ==========
+        // Combo increases with each kill, providing XP bonus
+        // Resets if no kill within timeout period (2 seconds)
         this.comboTimer -= dt;
         if (this.comboTimer <= 0) {
             this.combo = 0;
         }
 
-        // Update screen shake
+        // ========== SCREEN SHAKE ==========
+        // Decays naturally over time
         this.screenShake = Math.max(0, this.screenShake - dt * GameConfig.combat.screenShakeDecay);
 
         // Update active power-ups
@@ -161,7 +179,8 @@ class Game {
         // Update weapons
         this.player.updateWeapons(dt, this.enemySpawner.getEnemies());
 
-        // Check for dead enemies
+        // ========== ENEMY DEATH HANDLING ==========
+        // Process all dead enemies and create drops/effects
         const enemies = this.enemySpawner.getEnemies();
         for (let i = enemies.length - 1; i >= 0; i--) {
             const enemy = enemies[i];
@@ -169,23 +188,29 @@ class Game {
                 this.kills++;
                 this.gold += enemy.goldValue;
 
-                // Combo system
+                // ========== COMBO SYSTEM ==========
+                // Increment combo and reset timer
+                // Each kill extends the combo window by 2 seconds
                 this.combo++;
                 this.comboTimer = GameConfig.combat.comboTimeout;
 
-                // Create death particles
+                // Create death particles for visual feedback
                 this.createDeathParticles(enemy.x, enemy.y, enemy.config.emoji);
 
-                // Drop XP (more with combo)
+                // ========== XP DROP WITH COMBO BONUS ==========
+                // Base XP + 10% per combo count
+                // Example: 5x combo = 150% XP (50% bonus)
                 const xpBonus = 1 + (this.combo * GameConfig.combat.comboXpBonus);
                 this.dropXP(enemy.x, enemy.y, Math.floor(enemy.xpValue * xpBonus));
 
-                // Chance to drop gold pickup
+                // ========== GOLD DROP ==========
+                // 30% chance to drop gold worth 2x enemy's gold value
                 if (Math.random() < GameConfig.pickups.goldDropChance) {
                     this.dropGold(enemy.x, enemy.y, enemy.goldValue * GameConfig.pickups.goldDropMultiplier);
                 }
 
-                // Boss drops power-up
+                // ========== BOSS REWARDS ==========
+                // Bosses always drop power-ups and trigger screen shake
                 if (enemy.type === 'boss') {
                     this.dropPowerUp(enemy.x, enemy.y);
                     this.screenShake = GameConfig.combat.screenShakeDuration;
@@ -219,27 +244,35 @@ class Game {
             }
         }
 
-        // Update pickups
+        // ========== PICKUP MAGNETISM SYSTEM ==========
+        // Pickups are attracted to player when within range
+        // Magnet power-up increases range from 100px to 300px
         const magnetRange = this.activePowerUps.magnet > 0 ?
             GameConfig.powerUps.magnetRange :
             GameConfig.powerUps.normalMagnetRange;
+
         for (let pickup of this.pickups) {
-            // Move towards player if close
+            // ========== MAGNETIC ATTRACTION ==========
+            // Move pickups towards player if within range
+            // Creates satisfying vacuum effect
             const dist = distance(pickup.x, pickup.y, this.player.x, this.player.y);
             if (dist < magnetRange) {
                 const dx = this.player.x - pickup.x;
                 const dy = this.player.y - pickup.y;
                 const norm = normalizeVector(dx, dy);
+                // Move at constant speed (300 px/s) regardless of distance
                 pickup.x += norm.x * GameConfig.pickups.pickupMagnetSpeed * dt;
                 pickup.y += norm.y * GameConfig.pickups.pickupMagnetSpeed * dt;
             }
 
-            // Check collision with player
+            // ========== PICKUP COLLECTION ==========
+            // Check collision with player hitbox
             if (circleCollision(pickup.x, pickup.y, GameConfig.pickups.pickupSize, this.player.x, this.player.y, this.player.size)) {
                 if (pickup.type === 'xp') {
+                    // Gain XP and check for level up
                     const leveledUp = this.player.gainXP(pickup.value);
                     if (leveledUp) {
-                        this.showLevelUpScreen();
+                        this.showLevelUpScreen(); // Pause and show upgrade choices
                     }
                 } else if (pickup.type === 'gold') {
                     this.gold += pickup.value;
