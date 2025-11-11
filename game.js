@@ -518,29 +518,108 @@ class Game {
         const screen = document.getElementById('levelup-screen');
         const upgradeChoices = document.getElementById('upgrade-choices');
 
-        // Generate 3 random upgrades
-        const choices = [];
-        const availableOptions = [];
+        // Separate upgrade options into categories
+        const weaponUpgrades = [];
+        const newWeapons = [];
+        const statUpgrades = [];
 
-        // Add weapon upgrades that can still be upgraded
         for (let upgrade of this.availableUpgrades) {
             if (upgrade.type === 'weapon') {
                 const weapon = this.player.weapons.find(w => w.type === upgrade.id);
                 if (weapon && weapon.canUpgrade()) {
-                    availableOptions.push({...upgrade, weapon: weapon});
-                } else if (!weapon) {
-                    availableOptions.push(upgrade);
+                    // Existing weapon that can be upgraded - add 3x for higher chance
+                    weaponUpgrades.push({...upgrade, weapon: weapon});
+                    weaponUpgrades.push({...upgrade, weapon: weapon});
+                    weaponUpgrades.push({...upgrade, weapon: weapon});
+                } else if (!weapon && this.player.weapons.length < 6) {
+                    // New weapon, but only if player has less than 6 weapons
+                    newWeapons.push(upgrade);
                 }
             } else {
-                availableOptions.push(upgrade);
+                statUpgrades.push(upgrade);
             }
         }
 
-        // Pick random upgrade choices
-        for (let i = 0; i < GameConfig.ui.upgradeChoiceCount && availableOptions.length > 0; i++) {
-            const index = randomInt(0, availableOptions.length - 1);
-            choices.push(availableOptions[index]);
-            availableOptions.splice(index, 1);
+        // Generate 3 upgrade choices with weighted selection
+        const choices = [];
+
+        // First choice: 60% chance for existing weapon upgrade, 40% chance for stat
+        if (weaponUpgrades.length > 0 && Math.random() < 0.6) {
+            const index = randomInt(0, weaponUpgrades.length - 1);
+            choices.push(weaponUpgrades[index]);
+        } else if (statUpgrades.length > 0) {
+            const index = randomInt(0, statUpgrades.length - 1);
+            choices.push(statUpgrades[index]);
+        }
+
+        // Second choice: 70% stats, 20% existing weapon, 10% new weapon
+        const roll = Math.random();
+        if (roll < 0.7 && statUpgrades.length > 0) {
+            // Stat upgrade
+            const index = randomInt(0, statUpgrades.length - 1);
+            const choice = statUpgrades[index];
+            if (!choices.find(c => c.id === choice.id)) {
+                choices.push(choice);
+            }
+        } else if (roll < 0.9 && weaponUpgrades.length > 0) {
+            // Existing weapon
+            const index = randomInt(0, weaponUpgrades.length - 1);
+            const choice = weaponUpgrades[index];
+            if (!choices.find(c => c.id === choice.id && c.type === 'weapon')) {
+                choices.push(choice);
+            }
+        } else if (newWeapons.length > 0) {
+            // New weapon
+            const index = randomInt(0, newWeapons.length - 1);
+            choices.push(newWeapons[index]);
+        }
+
+        // Third choice: 80% stats, 15% existing weapon, 5% new weapon
+        const roll2 = Math.random();
+        if (roll2 < 0.8 && statUpgrades.length > 0) {
+            // Stat upgrade
+            const index = randomInt(0, statUpgrades.length - 1);
+            const choice = statUpgrades[index];
+            if (!choices.find(c => c.id === choice.id)) {
+                choices.push(choice);
+            }
+        } else if (roll2 < 0.95 && weaponUpgrades.length > 0) {
+            // Existing weapon
+            const index = randomInt(0, weaponUpgrades.length - 1);
+            const choice = weaponUpgrades[index];
+            if (!choices.find(c => c.id === choice.id && c.type === 'weapon')) {
+                choices.push(choice);
+            }
+        } else if (newWeapons.length > 0) {
+            // New weapon
+            const index = randomInt(0, newWeapons.length - 1);
+            const choice = newWeapons[index];
+            if (!choices.find(c => c.id === choice.id)) {
+                choices.push(choice);
+            }
+        }
+
+        // Fill remaining slots with stats if we don't have 3 choices yet
+        while (choices.length < 3 && statUpgrades.length > 0) {
+            const index = randomInt(0, statUpgrades.length - 1);
+            const choice = statUpgrades[index];
+            if (!choices.find(c => c.id === choice.id)) {
+                choices.push(choice);
+            } else {
+                // If we already have this stat, try another
+                statUpgrades.splice(index, 1);
+            }
+        }
+
+        // If still not enough, try adding any available weapons
+        while (choices.length < 3 && weaponUpgrades.length > 0) {
+            const index = randomInt(0, weaponUpgrades.length - 1);
+            const choice = weaponUpgrades[index];
+            if (!choices.find(c => c.id === choice.id && c.type === 'weapon')) {
+                choices.push(choice);
+                break;
+            }
+            weaponUpgrades.splice(index, 1);
         }
 
         // Create upgrade cards
