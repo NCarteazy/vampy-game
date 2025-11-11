@@ -1044,14 +1044,15 @@ body::before {
 
 .inventory-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-    gap: 0.5rem;
+    grid-template-columns: repeat(auto-fill, 80px);
+    gap: 0.8rem;
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: 16px;
     padding: 1.5rem;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    justify-content: center;
 }
 
 .inventory-slot {
