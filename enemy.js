@@ -159,19 +159,19 @@ class EnemySpawner {
     constructor() {
         this.enemies = [];
         this.spawnTimer = 0;
-        this.spawnInterval = 1.0;
+        this.spawnInterval = 0.6; // Faster initial spawns (was 1.0)
         this.difficultyTimer = 0;
-        this.difficulty = 1;
+        this.difficulty = 1.2; // Start harder (was 1.0)
     }
 
     update(dt, player, canvas) {
         this.spawnTimer += dt;
         this.difficultyTimer += dt;
 
-        // Increase difficulty over time
-        if (this.difficultyTimer > 10) {
-            this.difficulty += 0.1;
-            this.spawnInterval = Math.max(0.3, this.spawnInterval * 0.98);
+        // Increase difficulty over time - MUCH FASTER
+        if (this.difficultyTimer > 5) { // Every 5 seconds (was 10)
+            this.difficulty += 0.2; // Bigger jumps (was 0.1)
+            this.spawnInterval = Math.max(0.15, this.spawnInterval * 0.95); // Faster reduction, lower minimum (was 0.3, 0.98)
             this.difficultyTimer = 0;
         }
 
@@ -215,29 +215,37 @@ class EnemySpawner {
                 break;
         }
 
-        // Chance to spawn elite (increases with difficulty)
-        const eliteChance = Math.min(0.05 + (this.difficulty - 1) * 0.02, 0.15);
-        const isElite = Math.random() < eliteChance && this.difficulty > 1.5;
+        // Chance to spawn elite (increases with difficulty) - MORE ELITES
+        const eliteChance = Math.min(0.1 + (this.difficulty - 1) * 0.03, 0.25); // Was 0.05, 0.02, 0.15
+        const isElite = Math.random() < eliteChance && this.difficulty > 1.0; // Was 1.5
 
-        // Choose enemy type based on difficulty
+        // Choose enemy type based on difficulty - EARLIER VARIETY
         let type = 'basic';
         const rand = Math.random();
 
-        if (this.difficulty > 2) {
-            if (rand < 0.3) type = 'fast';
-            else if (rand < 0.5) type = 'swarm';
-            else if (rand < 0.6) type = 'tank';
-        } else if (this.difficulty > 1.5) {
-            if (rand < 0.4) type = 'fast';
-            else if (rand < 0.6) type = 'swarm';
+        if (this.difficulty > 1.5) { // Was 2.0
+            if (rand < 0.35) type = 'fast'; // Was 0.3
+            else if (rand < 0.6) type = 'swarm'; // Was 0.5
+            else if (rand < 0.75) type = 'tank'; // Was 0.6
+        } else if (this.difficulty > 1.2) { // Was 1.5
+            if (rand < 0.45) type = 'fast'; // Was 0.4
+            else if (rand < 0.7) type = 'swarm'; // Was 0.6
         }
 
         const enemy = new Enemy(x, y, type, isElite);
 
         // Scale with difficulty (non-elites only, elites already scaled)
         if (!isElite) {
-            enemy.hp *= (1 + (this.difficulty - 1) * 0.3);
-            enemy.maxHp *= (1 + (this.difficulty - 1) * 0.3);
+            // Much more aggressive HP scaling (was 0.3)
+            enemy.hp *= (1 + (this.difficulty - 1) * 0.5);
+            enemy.maxHp *= (1 + (this.difficulty - 1) * 0.5);
+            // Also scale damage
+            enemy.damage *= (1 + (this.difficulty - 1) * 0.3);
+        } else {
+            // Elites also scale with difficulty
+            enemy.hp *= (1 + (this.difficulty - 1) * 0.4);
+            enemy.maxHp *= (1 + (this.difficulty - 1) * 0.4);
+            enemy.damage *= (1 + (this.difficulty - 1) * 0.25);
         }
 
         this.enemies.push(enemy);
