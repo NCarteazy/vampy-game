@@ -50,7 +50,62 @@ class Player {
         this.hp = newMaxHp * hpRatio;
     }
 
+    applyEquipmentBonuses(equipment) {
+        if (!equipment) return;
+
+        const stats = equipment.getTotalStats();
+
+        // Apply percentage damage bonus
+        if (stats.damagePercent) {
+            this.damageBonus *= (1 + stats.damagePercent / 100);
+        }
+
+        // Apply flat max HP
+        if (stats.maxHpFlat) {
+            this.maxHp += stats.maxHpFlat;
+            this.hp += stats.maxHpFlat; // Also increase current HP
+        }
+
+        // Apply percentage max HP
+        if (stats.maxHpPercent) {
+            const bonus = 1 + stats.maxHpPercent / 100;
+            this.maxHp *= bonus;
+            this.hp *= bonus;
+        }
+
+        // Apply attack speed bonus
+        if (stats.attackSpeedPercent) {
+            this.attackSpeedBonus *= (1 + stats.attackSpeedPercent / 100);
+        }
+
+        // Apply movement speed
+        if (stats.moveSpeedFlat) {
+            this.speed += stats.moveSpeedFlat;
+        }
+
+        // Apply XP bonus
+        if (stats.xpGainPercent) {
+            this.xpBonus *= (1 + stats.xpGainPercent / 100);
+        }
+
+        // Store other stats for use during gameplay
+        this.critChance = (stats.critChance || 0);
+        this.critMultiplier = 1 + (stats.critMultiplier || 0) / 100;
+        this.hpRegenPerSec = (stats.hpRegenPerSec || 0);
+        this.lifestealPercent = (stats.lifestealPercent || 0);
+        this.cooldownReduction = (stats.cooldownReductionPercent || 0) / 100;
+        this.bonusRange = (stats.rangeFlat || 0);
+        this.bonusPierce = (stats.pierceFlat || 0);
+        this.dropChanceBonus = 1 + (stats.dropChancePercent || 0) / 100;
+        this.goldGainBonus = 1 + (stats.goldGainPercent || 0) / 100;
+    }
+
     update(dt, keys, canvas) {
+        // HP Regeneration from equipment
+        if (this.hpRegenPerSec && this.hpRegenPerSec > 0) {
+            this.heal(this.hpRegenPerSec * dt);
+        }
+
         // Movement
         let dx = 0;
         let dy = 0;

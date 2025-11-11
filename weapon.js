@@ -72,16 +72,60 @@ class Weapon {
         return configs[this.type] || configs.dagger;
     }
 
-    getDamage() {
-        return this.config.damage * (1 + (this.level - 1) * 0.3);
+    getDamage(player) {
+        // Base damage scaled by level
+        let damage = this.config.damage * (1 + (this.level - 1) * 0.3);
+
+        // Apply equipment damage bonus
+        if (player && player.damageBonus) {
+            damage *= player.damageBonus;
+        }
+
+        return damage;
     }
 
-    getCooldownTime() {
-        return this.config.cooldownTime * Math.pow(0.95, this.level - 1);
+    getCooldownTime(player) {
+        let cooldown = this.config.cooldownTime * Math.pow(0.95, this.level - 1);
+
+        // Apply attack speed bonus (reduces cooldown)
+        if (player && player.attackSpeedBonus) {
+            cooldown /= player.attackSpeedBonus;
+        }
+
+        // Apply cooldown reduction
+        if (player && player.cooldownReduction) {
+            cooldown *= (1 - player.cooldownReduction);
+        }
+
+        return cooldown;
+    }
+
+    rollCritical(player) {
+        if (!player || !player.critChance) return false;
+        return Math.random() * 100 < player.critChance;
+    }
+
+    getCritMultiplier(player) {
+        return (player && player.critMultiplier) ? player.critMultiplier : 1;
+    }
+
+    applyLifesteal(player, damageDealt) {
+        if (!player || !player.lifestealPercent || player.lifestealPercent <= 0) return;
+
+        const healAmount = damageDealt * (player.lifestealPercent / 100);
+        if (player.heal) {
+            player.heal(healAmount);
+        }
     }
 
     update(dt, player, enemies) {
         this.cooldown -= dt;
+
+        // Calculate bonuses
+        const bonusRange = (player && player.bonusRange) ? player.bonusRange : 0;
+        const bonusPierce = (player && player.bonusPierce) ? player.bonusPierce : 0;
+        const effectiveRange = this.config.range + bonusRange;
+        const effectivePierce = this.config.pierce + bonusPierce;
 
         // Update projectiles
         for (let i = this.projectiles.length - 1; i >= 0; i--) {
@@ -90,8 +134,8 @@ class Weapon {
             proj.y += proj.vy * dt;
             proj.traveled += this.config.speed * dt;
 
-            // Remove if out of range
-            if (proj.traveled > this.config.range) {
+            // Remove if out of range (with bonus range)
+            if (proj.traveled > effectiveRange) {
                 this.projectiles.splice(i, 1);
                 continue;
             }
@@ -102,10 +146,26 @@ class Weapon {
 
                 if (circleCollision(proj.x, proj.y, this.config.projectileSize,
                                    enemy.x, enemy.y, enemy.size)) {
-                    enemy.takeDamage(this.getDamage());
+                    // Calculate damage with equipment scaling
+                    let damage = this.getDamage(player);
+
+                    // Roll for critical strike
+                    const isCrit = this.rollCritical(player);
+                    if (isCrit) {
+                        damage *= this.getCritMultiplier(player);
+                        proj.isCrit = true; // Mark for visual effect
+                    }
+
+                    // Deal damage
+                    enemy.takeDamage(damage);
+
+                    // Apply lifesteal
+                    this.applyLifesteal(player, damage);
+
                     proj.hits++;
 
-                    if (proj.hits > this.config.pierce) {
+                    // Check pierce (with bonus pierce)
+                    if (proj.hits > effectivePierce) {
                         this.projectiles.splice(i, 1);
                         break;
                     }
@@ -116,9 +176,9 @@ class Weapon {
         // Shoot at nearest enemy
         if (this.cooldown <= 0 && enemies.length > 0) {
             const target = this.findNearestEnemy(player, enemies);
-            if (target && distance(player.x, player.y, target.x, target.y) < this.config.range) {
+            if (target && distance(player.x, player.y, target.x, target.y) < effectiveRange) {
                 this.shoot(player, target);
-                this.cooldown = this.getCooldownTime();
+                this.cooldown = this.getCooldownTime(player);
             }
         }
     }
@@ -155,11 +215,25 @@ class Weapon {
     }
 
     draw(ctx) {
-        ctx.fillStyle = this.config.color;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = this.config.color;
-
         for (let proj of this.projectiles) {
+            // Critical strikes have enhanced visuals
+            if (proj.isCrit) {
+                ctx.fillStyle = '#ffff00'; // Yellow for crits
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#ffff00';
+
+                // Draw outer ring for crits
+                ctx.strokeStyle = '#ff9900';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(proj.x, proj.y, this.config.projectileSize + 3, 0, Math.PI * 2);
+                ctx.stroke();
+            } else {
+                ctx.fillStyle = this.config.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = this.config.color;
+            }
+
             ctx.beginPath();
             ctx.arc(proj.x, proj.y, this.config.projectileSize, 0, Math.PI * 2);
             ctx.fill();

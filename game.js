@@ -21,8 +21,11 @@ class Game {
         this.player = null;
         this.enemySpawner = null;
 
-        // Pickups
+        // Pickups (old XP/gold system - keeping for XP)
         this.pickups = [];
+
+        // New drop system
+        this.drops = [];
 
         // Stats
         this.time = 0;
@@ -67,11 +70,17 @@ class Game {
         this.player = new Player(this.canvas.width / 2, this.canvas.height / 2);
         this.player.applyVillageBonuses(this.village);
 
+        // Apply equipment bonuses if equipment is available
+        if (typeof playerEquipment !== 'undefined' && playerEquipment) {
+            this.player.applyEquipmentBonuses(playerEquipment);
+        }
+
         // Create enemy spawner
         this.enemySpawner = new EnemySpawner();
 
-        // Clear pickups
+        // Clear pickups and drops
         this.pickups = [];
+        this.drops = [];
 
         // Start game loop
         this.lastTime = performance.now();
@@ -114,12 +123,31 @@ class Game {
                 this.kills++;
                 this.gold += enemy.goldValue;
 
-                // Drop XP
+                // Drop XP (keep old system for XP)
                 this.dropXP(enemy.x, enemy.y, enemy.xpValue);
 
-                // Chance to drop gold pickup
-                if (Math.random() < 0.3) {
-                    this.dropGold(enemy.x, enemy.y, enemy.goldValue * 2);
+                // Elite enemies drop equipment!
+                if (enemy.isElite) {
+                    // Calculate item level based on difficulty
+                    const itemLevel = Math.max(1, Math.floor(this.enemySpawner.difficulty));
+
+                    // Generate random equipment with elite rarity boost
+                    const equipment = EquipmentGenerator.generateRandomEquipment(
+                        itemLevel,
+                        EquipmentGenerator.rollEliteRarity()
+                    );
+
+                    // Spawn equipment drop
+                    const equipDrop = new EquipmentDrop(enemy.x, enemy.y, equipment);
+                    this.drops.push(equipDrop);
+
+                    // Extra resource drops from elites
+                    const eliteDrops = DropManager.spawnDrops(enemy.x, enemy.y, 'elite');
+                    this.drops.push(...eliteDrops);
+                } else {
+                    // Regular enemy drops
+                    const newDrops = DropManager.spawnDrops(enemy.x, enemy.y, enemy.type);
+                    this.drops.push(...newDrops);
                 }
 
                 enemies.splice(i, 1);
@@ -154,6 +182,39 @@ class Game {
 
         this.pickups = this.pickups.filter(p => !p.collected);
 
+        // Update drops (new system)
+        for (let i = this.drops.length - 1; i >= 0; i--) {
+            const drop = this.drops[i];
+            const collected = drop.update(dt, this.player);
+
+            if (collected) {
+                if (drop.isEquipment) {
+                    // Equipment drop - add to inventory as special item
+                    if (playerInventory) {
+                        // For now, add to inventory - later we'll show equipment UI
+                        const equipData = {
+                            type: 'equipment_item',
+                            equipment: collected // The Equipment object
+                        };
+
+                        // Store in a temporary array for now
+                        if (!window.collectedEquipment) {
+                            window.collectedEquipment = [];
+                        }
+                        window.collectedEquipment.push(collected);
+
+                        console.log(`Collected ${collected.rarity} equipment: ${collected.name}`);
+                    }
+                } else {
+                    // Regular item drop
+                    if (playerInventory) {
+                        playerInventory.addItem(collected, drop.amount);
+                    }
+                }
+                this.drops.splice(i, 1);
+            }
+        }
+
         // Update UI
         this.updateUI();
 
@@ -185,7 +246,7 @@ class Game {
             this.ctx.stroke();
         }
 
-        // Draw pickups
+        // Draw pickups (old system - XP)
         for (let pickup of this.pickups) {
             this.ctx.fillStyle = pickup.type === 'xp' ? '#00ff00' : '#ffd700';
             this.ctx.shadowBlur = 10;
@@ -194,6 +255,11 @@ class Game {
             this.ctx.arc(pickup.x, pickup.y, 8, 0, Math.PI * 2);
             this.ctx.fill();
             this.ctx.shadowBlur = 0;
+        }
+
+        // Draw drops (new system)
+        for (let drop of this.drops) {
+            drop.draw(this.ctx);
         }
 
         // Draw enemies
