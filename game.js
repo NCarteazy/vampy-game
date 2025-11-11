@@ -24,6 +24,9 @@ class Game {
         // Pickups
         this.pickups = [];
 
+        // Item drops
+        this.itemDrops = [];
+
         // Particles
         this.particles = [];
         this.explosions = [];
@@ -103,6 +106,7 @@ class Game {
 
         // Clear pickups and particles
         this.pickups = [];
+        this.itemDrops = [];
         this.particles = [];
         this.explosions = [];
         this.powerUps = [];
@@ -216,6 +220,15 @@ class Game {
                     this.screenShake = GameConfig.combat.screenShakeDuration;
                 }
 
+                // ========== ITEM DROPS ==========
+                // Spawn items from enemy-specific drop tables
+                // Drop chance increases with player's equipment bonus
+                const dropChanceMultiplier = this.player.dropChanceBonus || 1;
+                if (Math.random() < 0.3 * dropChanceMultiplier) { // 30% base chance for items
+                    const drops = DropManager.spawnDrops(enemy.x, enemy.y, enemy.type, 40);
+                    this.itemDrops.push(...drops);
+                }
+
                 enemies.splice(i, 1);
             }
         }
@@ -282,6 +295,28 @@ class Game {
         }
 
         this.pickups = this.pickups.filter(p => !p.collected);
+
+        // ========== ITEM DROP UPDATE AND COLLECTION ==========
+        // Update item drops (bobbing animation, magnetism)
+        for (let i = this.itemDrops.length - 1; i >= 0; i--) {
+            const drop = this.itemDrops[i];
+            const collectedItemId = drop.update(dt, this.player);
+
+            if (collectedItemId) {
+                // Item was collected - add to inventory
+                const item = DropManager.getItem(collectedItemId);
+                if (item && inventory) {
+                    const added = inventory.addItem(item, drop.amount);
+                    if (added) {
+                        // Save inventory when items are collected
+                        if (window.saveGameData) {
+                            window.saveGameData();
+                        }
+                    }
+                }
+                this.itemDrops.splice(i, 1);
+            }
+        }
 
         // Update power-ups
         for (let powerUp of this.powerUps) {
@@ -360,6 +395,11 @@ class Game {
             this.ctx.shadowColor = pickup.type === 'xp' ? '#00ff00' : '#ffd700';
             this.ctx.fillText(emoji, pickup.x, pickup.y);
             this.ctx.shadowBlur = 0;
+        }
+
+        // Draw item drops
+        for (let drop of this.itemDrops) {
+            drop.draw(this.ctx);
         }
 
         // Draw power-ups

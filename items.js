@@ -116,7 +116,8 @@ class EquipmentDrop {
             this.y += moveY;
 
             // Check for collection
-            if (distance < player.radius + this.radius) {
+            const playerSize = player.size || player.radius || 20;
+            if (distance < playerSize + this.radius) {
                 this.collected = true;
                 return this.equipment; // Return equipment object
             }
@@ -223,7 +224,8 @@ class Drop {
             this.y += moveY;
 
             // Check for collection
-            if (distance < player.radius + this.radius) {
+            const playerSize = player.size || player.radius || 20;
+            if (distance < playerSize + this.radius) {
                 this.collected = true;
                 return this.itemId;
             }
@@ -338,4 +340,14 @@ class DropManager {
     static getItem(itemId) {
         return ITEM_DEFINITIONS[itemId];
     }
+}
+
+// Make available globally
+if (typeof window !== 'undefined') {
+    window.ITEM_DEFINITIONS = ITEM_DEFINITIONS;
+    window.ItemDatabase = ITEM_DEFINITIONS; // Alias for compatibility
+    window.DROP_TABLES = DROP_TABLES;
+    window.Drop = Drop;
+    window.EquipmentDrop = EquipmentDrop;
+    window.DropManager = DropManager;
 }
