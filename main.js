@@ -90,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize game
     game = new Game(canvas, village);
+    window.currentGame = game; // For weapon explosion visuals
 });
 
 function switchScreen(fromScreen, toScreen) {

@@ -4,18 +4,22 @@ class Player {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.size = 20;
-        this.speed = 200;
+        this.size = GameConfig.player.baseSize;
+        this.speed = GameConfig.player.baseSpeed;
 
         // Stats
-        this.maxHp = 100;
+        this.maxHp = GameConfig.player.baseMaxHp;
         this.hp = this.maxHp;
         this.level = 1;
         this.xp = 0;
-        this.xpToNextLevel = 10;
+        this.xpToNextLevel = GameConfig.player.initialXpToNextLevel;
 
         // Weapons
-        this.weapons = [new Weapon('dagger')];
+        this.weapons = [new Weapon(GameConfig.player.startingWeapon)];
+
+        // Power-up states
+        this.speedMultiplier = 1;
+        this.invincible = false;
 
         // Bonuses from village
         this.damageBonus = 1;
@@ -32,22 +36,38 @@ class Player {
         this.goldCollected = 0;
     }
 
+    /**
+     * Apply permanent bonuses from village buildings
+     *
+     * Village System:
+     * - Armory: +10% damage per level
+     * - Temple: +10% max HP per level
+     * - Academy: +15% XP gain per level
+     * - Workshop: +10% attack speed per level
+     *
+     * HP Preservation:
+     * When HP bonus changes, maintains same HP percentage
+     * Example: If at 50% HP with 100 max, stays at 50% with new max
+     */
     applyVillageBonuses(village) {
         const armoryLevel = village.buildings.armory.level;
         const templeLevel = village.buildings.temple.level;
         const academyLevel = village.buildings.academy.level;
         const workshopLevel = village.buildings.workshop.level;
 
-        this.damageBonus = 1 + armoryLevel * 0.1;
-        this.hpBonus = 1 + templeLevel * 0.1;
-        this.xpBonus = 1 + academyLevel * 0.15;
-        this.attackSpeedBonus = 1 + workshopLevel * 0.1;
+        // Calculate multipliers (1.0 + level * bonus_per_level)
+        this.damageBonus = 1 + armoryLevel * GameConfig.village.armoryDamagePerLevel;
+        this.hpBonus = 1 + templeLevel * GameConfig.village.templeHpPerLevel;
+        this.xpBonus = 1 + academyLevel * GameConfig.village.academyXpPerLevel;
+        this.attackSpeedBonus = 1 + workshopLevel * GameConfig.village.workshopAttackSpeedPerLevel;
 
-        // Apply HP bonus
-        const newMaxHp = 100 * this.hpBonus;
-        const hpRatio = this.hp / this.maxHp;
+        // ========== HP BONUS APPLICATION ==========
+        // Preserve HP percentage when max HP changes
+        // This prevents healing/damage when entering a run with different temple levels
+        const newMaxHp = GameConfig.player.baseMaxHp * this.hpBonus;
+        const hpRatio = this.hp / this.maxHp; // Current HP percentage
         this.maxHp = newMaxHp;
-        this.hp = newMaxHp * hpRatio;
+        this.hp = newMaxHp * hpRatio; // Maintain same percentage
     }
 
     applyEquipmentBonuses(equipment) {
@@ -118,8 +138,8 @@ class Player {
         // Normalize diagonal movement
         if (dx !== 0 || dy !== 0) {
             const normalized = normalizeVector(dx, dy);
-            this.vx = normalized.x * this.speed;
-            this.vy = normalized.y * this.speed;
+            this.vx = normalized.x * this.speed * this.speedMultiplier;
+            this.vy = normalized.y * this.speed * this.speedMultiplier;
         } else {
             this.vx = 0;
             this.vy = 0;
@@ -141,6 +161,7 @@ class Player {
     }
 
     takeDamage(amount) {
+        if (this.invincible) return;
         this.hp -= amount;
         if (this.hp < 0) this.hp = 0;
     }
@@ -162,10 +183,10 @@ class Player {
     levelUp() {
         this.level++;
         this.xp -= this.xpToNextLevel;
-        this.xpToNextLevel = Math.floor(this.xpToNextLevel * 1.5);
+        this.xpToNextLevel = Math.floor(this.xpToNextLevel * GameConfig.player.xpLevelScaling);
 
         // Heal on level up
-        this.heal(this.maxHp * 0.2);
+        this.heal(this.maxHp * GameConfig.player.levelUpHealPercent);
     }
 
     addWeapon(type) {
@@ -194,28 +215,20 @@ class Player {
     }
 
     draw(ctx) {
-        // Draw player
-        ctx.fillStyle = '#00aaff';
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = '#00aaff';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
+        // Draw player as vampire emoji
+        ctx.shadowBlur = GameConfig.visual.playerShadowBlur;
+        ctx.shadowColor = this.invincible ?
+            GameConfig.visual.playerInvincibleColor :
+            GameConfig.visual.playerNormalColor;
+        ctx.font = `${this.size * GameConfig.player.emojiSize}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
 
-        // Draw direction indicator
-        if (this.vx !== 0 || this.vy !== 0) {
-            const angle = Math.atan2(this.vy, this.vx);
-            const tipX = this.x + Math.cos(angle) * this.size;
-            const tipY = this.y + Math.sin(angle) * this.size;
-
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(this.x, this.y);
-            ctx.lineTo(tipX, tipY);
-            ctx.stroke();
+        // Flash when invincible
+        if (!this.invincible || Math.floor(Date.now() / GameConfig.visual.invincibleFlashInterval) % 2 === 0) {
+            ctx.fillText(GameConfig.player.emoji, this.x, this.y);
         }
+        ctx.shadowBlur = 0;
 
         // Draw weapons
         for (let weapon of this.weapons) {

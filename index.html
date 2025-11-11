@@ -32,6 +32,7 @@
                 </div>
                 <div class="buildings-grid">
                     <div class="building-card" data-building="armory">
+                        <div class="building-icon">⚔️</div>
                         <h3>Armory</h3>
                         <p>+10% Damage</p>
                         <p>Cost: <span class="cost">50</span> Gold</p>
@@ -39,6 +40,7 @@
                         <p class="level">Level: <span>0</span></p>
                     </div>
                     <div class="building-card" data-building="temple">
+                        <div class="building-icon">⛪</div>
                         <h3>Temple</h3>
                         <p>+10% Max HP</p>
                         <p>Cost: <span class="cost">75</span> Gold</p>
@@ -46,6 +48,7 @@
                         <p class="level">Level: <span>0</span></p>
                     </div>
                     <div class="building-card" data-building="academy">
+                        <div class="building-icon">🎓</div>
                         <h3>Academy</h3>
                         <p>+15% XP Gain</p>
                         <p>Cost: <span class="cost">100</span> Gold</p>
@@ -53,6 +56,7 @@
                         <p class="level">Level: <span>0</span></p>
                     </div>
                     <div class="building-card" data-building="workshop">
+                        <div class="building-icon">🔨</div>
                         <h3>Workshop</h3>
                         <p>+10% Attack Speed</p>
                         <p>Cost: <span class="cost">60</span> Gold</p>
@@ -162,8 +166,14 @@
                     </div>
                     <div class="game-stats">
                         <p>Time: <span id="time-display">0:00</span></p>
+                        <p>Wave: <span id="wave-display">1</span></p>
                         <p>Kills: <span id="kills-display">0</span></p>
                         <p>Gold: <span id="game-gold-display">0</span></p>
+                        <p id="combo-display" class="combo-text" style="display: none;"></p>
+                        <p id="powerup-display" class="powerup-text" style="display: none; font-size: 1.5rem;"></p>
+                    </div>
+                    <div id="weapon-display" class="weapon-display">
+                        <!-- Dynamically populated -->
                     </div>
                 </div>
             </div>
@@ -194,6 +204,12 @@
         </div>
     </div>
 
+    <!-- Load configuration files first -->
+    <script src="config/gameConfig.js"></script>
+    <script src="config/weaponConfigs.js"></script>
+    <script src="config/enemyConfigs.js"></script>
+
+    <!-- Load game code -->
     <script src="utils.js"></script>
     <script src="equipment.js"></script>
     <script src="items.js"></script>

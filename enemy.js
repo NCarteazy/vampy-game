@@ -1,11 +1,10 @@
 // Enemy System
 
 class Enemy {
-    constructor(x, y, type = 'basic', isElite = false) {
+    constructor(x, y, type = 'basic') {
         this.x = x;
         this.y = y;
         this.type = type;
-        this.isElite = isElite;
         this.dead = false;
 
         this.config = this.getConfig();
@@ -16,69 +15,20 @@ class Enemy {
         this.damage = this.config.damage;
         this.xpValue = this.config.xpValue;
         this.goldValue = this.config.goldValue;
-
-        // Elite bonuses
-        if (this.isElite) {
-            this.hp *= 3;
-            this.maxHp *= 3;
-            this.size *= 1.4;
-            this.damage *= 1.5;
-            this.xpValue *= 5;
-            this.goldValue *= 3;
-            this.glowPhase = 0; // For visual effect
-        }
     }
 
     getConfig() {
-        const configs = {
-            basic: {
-                maxHp: 30,
-                speed: 80,
-                damage: 10,
-                size: 15,
-                color: '#ff3366',
-                xpValue: 5,
-                goldValue: 1
-            },
-            fast: {
-                maxHp: 15,
-                speed: 150,
-                damage: 5,
-                size: 12,
-                color: '#ffaa00',
-                xpValue: 3,
-                goldValue: 2
-            },
-            tank: {
-                maxHp: 100,
-                speed: 40,
-                damage: 20,
-                size: 25,
-                color: '#8844ff',
-                xpValue: 15,
-                goldValue: 5
-            },
-            swarm: {
-                maxHp: 10,
-                speed: 100,
-                damage: 5,
-                size: 10,
-                color: '#00ff88',
-                xpValue: 2,
-                goldValue: 1
-            }
-        };
-
-        return configs[this.type] || configs.basic;
+        // Use centralized enemy configs
+        const config = EnemyConfigs[this.type];
+        if (!config) {
+            console.error(`Unknown enemy type: ${this.type}`);
+            return EnemyConfigs.basic; // Fallback to basic
+        }
+        return config;
     }
 
     update(dt, player) {
         if (this.dead) return;
-
-        // Update glow phase for elites
-        if (this.isElite) {
-            this.glowPhase += dt * 2;
-        }
 
         // Move towards player
         const dx = player.x - this.x;
@@ -106,147 +56,156 @@ class Enemy {
     draw(ctx) {
         if (this.dead) return;
 
-        // Elite special effects
-        if (this.isElite) {
-            // Pulsing outer glow
-            const pulseAmount = Math.sin(this.glowPhase) * 0.3 + 0.7;
-            ctx.shadowBlur = 30 * pulseAmount;
-            ctx.shadowColor = '#ffcc00';
-
-            // Draw outer ring
-            ctx.strokeStyle = '#ffcc00';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size + 5, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-
-        // Draw enemy body
-        ctx.fillStyle = this.isElite ? '#ffaa00' : this.config.color;
-        ctx.shadowBlur = this.isElite ? 20 : 15;
-        ctx.shadowColor = this.isElite ? '#ffcc00' : this.config.color;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
+        // Draw enemy as emoji
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = this.config.color;
+        ctx.font = `${this.size * 2.2}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.config.emoji, this.x, this.y);
         ctx.shadowBlur = 0;
 
-        // Draw elite crown/marker
-        if (this.isElite) {
-            ctx.fillStyle = '#ffcc00';
-            ctx.font = 'bold 20px Arial';
-            ctx.textAlign = 'center';
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = 3;
-            ctx.strokeText('★', this.x, this.y - this.size - 15);
-            ctx.fillText('★', this.x, this.y - this.size - 15);
-        }
-
         // Draw HP bar
-        const barWidth = this.size * 2;
-        const barHeight = this.isElite ? 6 : 4;
-        const barY = this.y - this.size - 10;
+        const barWidth = this.size * 2.5;
+        const barHeight = 4;
+        const barY = this.y - this.size - 8;
 
-        ctx.fillStyle = '#333';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.fillRect(this.x - barWidth / 2, barY, barWidth, barHeight);
 
-        ctx.fillStyle = this.isElite ? '#ffcc00' : '#ff3366';
+        ctx.fillStyle = '#ff3366';
         const hpPercent = this.hp / this.maxHp;
         ctx.fillRect(this.x - barWidth / 2, barY, barWidth * hpPercent, barHeight);
     }
 }
 
+/**
+ * EnemySpawner - Manages enemy spawning and difficulty scaling
+ *
+ * Difficulty System:
+ * - Starts at difficulty 1.0
+ * - Increases by 0.1 every 10 seconds
+ * - Spawn rate increases (interval decreases) with difficulty
+ * - Enemy HP scales up with difficulty
+ * - Enemy type distribution changes based on difficulty tier
+ *
+ * Boss System:
+ * - Bosses spawn every 30 seconds
+ * - Have significantly more HP that scales with difficulty
+ * - Drop power-ups when defeated
+ */
 class EnemySpawner {
     constructor() {
         this.enemies = [];
         this.spawnTimer = 0;
-        this.spawnInterval = 0.6; // Faster initial spawns (was 1.0)
+        this.spawnInterval = GameConfig.spawning.baseSpawnInterval;
         this.difficultyTimer = 0;
-        this.difficulty = 1.2; // Start harder (was 1.0)
+        this.difficulty = 1;
+        this.waveNumber = 1;
+        this.bossTimer = 0;
+        this.bossInterval = GameConfig.spawning.bossInterval;
     }
 
     update(dt, player, canvas) {
         this.spawnTimer += dt;
         this.difficultyTimer += dt;
+        this.bossTimer += dt;
 
-        // Increase difficulty over time - MUCH FASTER
-        if (this.difficultyTimer > 5) { // Every 5 seconds (was 10)
-            this.difficulty += 0.2; // Bigger jumps (was 0.1)
-            this.spawnInterval = Math.max(0.15, this.spawnInterval * 0.95); // Faster reduction, lower minimum (was 0.3, 0.98)
+        // ========== DIFFICULTY SCALING ==========
+        // Every 10 seconds, increase difficulty and spawn rate
+        // This creates progressive challenge without overwhelming early game
+        if (this.difficultyTimer > GameConfig.spawning.difficultyIncreaseInterval) {
+            this.difficulty += GameConfig.spawning.difficultyIncrement;
+
+            // Spawn interval decreases (enemies spawn faster)
+            // Capped at minSpawnInterval to prevent impossible spawn rates
+            this.spawnInterval = Math.max(
+                GameConfig.spawning.minSpawnInterval,
+                this.spawnInterval * GameConfig.spawning.spawnIntervalDecay
+            );
+
             this.difficultyTimer = 0;
+            this.waveNumber++;
         }
 
-        // Spawn enemies
+        // ========== BOSS SPAWNING ==========
+        // Bosses spawn on a fixed timer (30s)
+        // Independent of regular enemy spawning
+        if (this.bossTimer > this.bossInterval) {
+            this.bossTimer = 0;
+            this.spawnBoss(player, canvas);
+        }
+
+        // ========== REGULAR ENEMY SPAWNING ==========
+        // Spawn rate increases with difficulty
         if (this.spawnTimer > this.spawnInterval) {
             this.spawnTimer = 0;
             this.spawnEnemy(player, canvas);
         }
 
-        // Update enemies
+        // Update all enemies
         for (let enemy of this.enemies) {
             enemy.update(dt, player);
         }
 
-        // Remove dead enemies
+        // Clean up dead enemies
+        // Note: Dead enemies are kept temporarily for particle effects,
+        // then removed by game.js after processing drops
         this.enemies = this.enemies.filter(e => !e.dead);
     }
 
+    /**
+     * Spawns a regular enemy off-screen
+     *
+     * Spawn Algorithm:
+     * 1. Pick random screen edge (top, right, bottom, left)
+     * 2. Spawn 50px outside visible area
+     * 3. Select enemy type based on difficulty tier
+     * 4. Scale enemy HP based on current difficulty
+     *
+     * This ensures enemies enter from off-screen and difficulty scales smoothly
+     */
     spawnEnemy(player, canvas) {
-        // Spawn outside screen
+        // ========== SPAWN POSITION ==========
+        // Randomly choose which edge of screen to spawn from
         const side = randomInt(0, 3);
         let x, y;
 
-        const margin = 50;
+        const margin = GameConfig.spawning.spawnMargin; // 50px outside visible area
+
         switch (side) {
-            case 0: // Top
+            case 0: // Top edge
                 x = randomRange(-margin, canvas.width + margin);
                 y = -margin;
                 break;
-            case 1: // Right
+            case 1: // Right edge
                 x = canvas.width + margin;
                 y = randomRange(-margin, canvas.height + margin);
                 break;
-            case 2: // Bottom
+            case 2: // Bottom edge
                 x = randomRange(-margin, canvas.width + margin);
                 y = canvas.height + margin;
                 break;
-            case 3: // Left
+            case 3: // Left edge
                 x = -margin;
                 y = randomRange(-margin, canvas.height + margin);
                 break;
         }
 
-        // Chance to spawn elite (increases with difficulty) - MORE ELITES
-        const eliteChance = Math.min(0.1 + (this.difficulty - 1) * 0.03, 0.25); // Was 0.05, 0.02, 0.15
-        const isElite = Math.random() < eliteChance && this.difficulty > 1.0; // Was 1.5
+        // ========== ENEMY TYPE SELECTION ==========
+        // Uses difficulty-based spawn weights from enemyConfigs.js
+        // Early game: Mostly basic enemies
+        // Mid game: Mix of fast, swarm, basic
+        // Late game: All types including tanks
+        const type = selectEnemyType(this.difficulty);
 
-        // Choose enemy type based on difficulty - EARLIER VARIETY
-        let type = 'basic';
-        const rand = Math.random();
-
-        if (this.difficulty > 1.5) { // Was 2.0
-            if (rand < 0.35) type = 'fast'; // Was 0.3
-            else if (rand < 0.6) type = 'swarm'; // Was 0.5
-            else if (rand < 0.75) type = 'tank'; // Was 0.6
-        } else if (this.difficulty > 1.2) { // Was 1.5
-            if (rand < 0.45) type = 'fast'; // Was 0.4
-            else if (rand < 0.7) type = 'swarm'; // Was 0.6
-        }
-
-        const enemy = new Enemy(x, y, type, isElite);
-
-        // Scale with difficulty (non-elites only, elites already scaled)
-        if (!isElite) {
-            // Much more aggressive HP scaling (was 0.3)
-            enemy.hp *= (1 + (this.difficulty - 1) * 0.5);
-            enemy.maxHp *= (1 + (this.difficulty - 1) * 0.5);
-            // Also scale damage
-            enemy.damage *= (1 + (this.difficulty - 1) * 0.3);
-        } else {
-            // Elites also scale with difficulty
-            enemy.hp *= (1 + (this.difficulty - 1) * 0.4);
-            enemy.maxHp *= (1 + (this.difficulty - 1) * 0.4);
-            enemy.damage *= (1 + (this.difficulty - 1) * 0.25);
-        }
+        // ========== HP SCALING ==========
+        // Create enemy and scale stats based on difficulty
+        // 30% HP increase per difficulty level above 1.0
+        const enemy = new Enemy(x, y, type);
+        const scaling = 1 + (this.difficulty - 1) * GameConfig.spawning.enemyHpScaling;
+        enemy.hp *= scaling;
+        enemy.maxHp *= scaling;
 
         this.enemies.push(enemy);
     }
@@ -257,8 +216,32 @@ class EnemySpawner {
         }
     }
 
+    spawnBoss(player, canvas) {
+        // Spawn at random edge
+        const side = randomInt(0, 3);
+        let x, y;
+        const margin = GameConfig.spawning.bossSpawnMargin;
+
+        switch (side) {
+            case 0: x = randomRange(-margin, canvas.width + margin); y = -margin; break;
+            case 1: x = canvas.width + margin; y = randomRange(-margin, canvas.height + margin); break;
+            case 2: x = randomRange(-margin, canvas.width + margin); y = canvas.height + margin; break;
+            case 3: x = -margin; y = randomRange(-margin, canvas.height + margin); break;
+        }
+
+        const boss = new Enemy(x, y, 'boss');
+        const scaling = 1 + (this.difficulty - 1) * GameConfig.spawning.bossHpScaling;
+        boss.hp *= scaling;
+        boss.maxHp *= scaling;
+        this.enemies.push(boss);
+    }
+
     getEnemies() {
         return this.enemies;
+    }
+
+    getWaveNumber() {
+        return this.waveNumber;
     }
 
     clear() {

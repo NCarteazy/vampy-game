@@ -1,14 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+:root {
+    --primary: #ff3366;
+    --secondary: #00ffff;
+    --accent: #ffd700;
+    --dark: #0a0e27;
+    --darker: #050711;
+    --purple: #6b4cad;
+    --success: #00ff88;
+}
+
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Press Start 2P', cursive;
     background: linear-gradient(135deg, #1e0a3c, #0a0e27);
     color: #fff;
     overflow: hidden;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
 }
 
 #game-container {
@@ -42,149 +57,316 @@ body {
 /* Main Menu */
 #main-menu {
     background: radial-gradient(circle, #2d1b4e, #0a0e27);
+    position: relative;
+}
+
+#main-menu::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15) 0px,
+        transparent 2px,
+        transparent 4px
+    );
+    pointer-events: none;
+    animation: scanlines 8s linear infinite;
+}
+
+@keyframes scanlines {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(4px); }
 }
 
 #main-menu h1 {
-    font-size: 5rem;
-    color: #ff3366;
-    text-shadow: 0 0 20px #ff3366, 0 0 40px #ff3366;
+    font-size: 4rem;
+    color: var(--primary);
+    text-shadow:
+        4px 4px 0 var(--darker),
+        0 0 20px var(--primary),
+        0 0 40px var(--primary);
     margin-bottom: 3rem;
-    letter-spacing: 0.5rem;
+    letter-spacing: 0.3rem;
+    animation: glitch 3s infinite;
+    position: relative;
+}
+
+@keyframes glitch {
+    0%, 90%, 100% {
+        transform: translate(0, 0);
+    }
+    92% {
+        transform: translate(-2px, 2px);
+    }
+    94% {
+        transform: translate(2px, -2px);
+    }
+    96% {
+        transform: translate(-2px, -2px);
+    }
 }
 
 .menu-content {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 2rem;
     align-items: center;
+    z-index: 10;
 }
 
 .stats {
     margin-top: 2rem;
     text-align: center;
-    font-size: 1.2rem;
-    color: #ffd700;
+    font-size: 0.8rem;
+    color: var(--accent);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 1.5rem 2rem;
+    border: 4px solid var(--purple);
+    border-radius: 0;
+    box-shadow:
+        inset 0 0 20px rgba(107, 76, 173, 0.3),
+        0 0 20px rgba(107, 76, 173, 0.5);
+}
+
+.stats p {
+    margin: 0.5rem 0;
 }
 
 /* Buttons */
 .btn {
-    padding: 1rem 3rem;
-    font-size: 1.5rem;
-    border: none;
-    border-radius: 8px;
+    padding: 1.2rem 2.5rem;
+    font-size: 1rem;
+    border: 4px solid;
+    border-radius: 0;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.1s ease;
     font-weight: bold;
     text-transform: uppercase;
+    font-family: 'Press Start 2P', cursive;
+    position: relative;
+    letter-spacing: 2px;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 255, 255, 0.03) 2px,
+        rgba(255, 255, 255, 0.03) 4px
+    );
+    pointer-events: none;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #ff3366, #cc0044);
+    background: var(--primary);
+    border-color: #cc0044;
     color: white;
-    box-shadow: 0 4px 15px rgba(255, 51, 102, 0.4);
+    box-shadow:
+        0 4px 0 #990033,
+        0 8px 20px rgba(255, 51, 102, 0.4),
+        inset 0 -4px 0 rgba(0, 0, 0, 0.2);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 51, 102, 0.6);
+    box-shadow:
+        0 6px 0 #990033,
+        0 10px 25px rgba(255, 51, 102, 0.6),
+        inset 0 -4px 0 rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary:active {
+    transform: translateY(2px);
+    box-shadow:
+        0 2px 0 #990033,
+        0 4px 10px rgba(255, 51, 102, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.2);
 }
 
 .btn-secondary {
-    background: linear-gradient(135deg, #6b4cad, #4a328a);
+    background: var(--purple);
+    border-color: #4a328a;
     color: white;
-    box-shadow: 0 4px 15px rgba(107, 76, 173, 0.4);
+    box-shadow:
+        0 4px 0 #3a2570,
+        0 8px 20px rgba(107, 76, 173, 0.4),
+        inset 0 -4px 0 rgba(0, 0, 0, 0.2);
 }
 
 .btn-secondary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(107, 76, 173, 0.6);
+    box-shadow:
+        0 6px 0 #3a2570,
+        0 10px 25px rgba(107, 76, 173, 0.6),
+        inset 0 -4px 0 rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary:active {
+    transform: translateY(2px);
+    box-shadow:
+        0 2px 0 #3a2570,
+        0 4px 10px rgba(107, 76, 173, 0.4),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.2);
 }
 
 /* Village Screen */
 #village-screen {
     padding: 2rem;
     overflow-y: auto;
+    background: var(--dark);
 }
 
 #village-screen h2 {
-    font-size: 3rem;
-    color: #ffd700;
+    font-size: 2rem;
+    color: var(--accent);
     margin-bottom: 2rem;
+    text-shadow:
+        3px 3px 0 var(--darker),
+        0 0 10px var(--accent);
+    text-align: center;
 }
 
 .village-content {
     width: 100%;
     max-width: 1200px;
+    margin: 0 auto;
 }
 
 .resources {
-    font-size: 1.5rem;
-    color: #ffd700;
+    font-size: 1rem;
+    color: var(--accent);
     margin-bottom: 2rem;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 1rem;
+    border: 4px solid var(--accent);
 }
 
 .buildings-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
     margin-bottom: 2rem;
 }
 
 .building-card {
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid #6b4cad;
-    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    border: 4px solid var(--purple);
+    border-radius: 0;
     padding: 1.5rem;
     text-align: center;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
+    position: relative;
+    box-shadow:
+        inset 0 0 20px rgba(107, 76, 173, 0.1),
+        0 4px 0 rgba(0, 0, 0, 0.3);
+}
+
+.building-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 2px,
+        rgba(107, 76, 173, 0.1) 2px,
+        rgba(107, 76, 173, 0.1) 4px
+    );
+    pointer-events: none;
 }
 
 .building-card:hover {
-    border-color: #ff3366;
-    box-shadow: 0 0 20px rgba(255, 51, 102, 0.3);
+    border-color: var(--primary);
+    transform: translateY(-4px);
+    box-shadow:
+        inset 0 0 20px rgba(255, 51, 102, 0.2),
+        0 8px 0 rgba(0, 0, 0, 0.3),
+        0 0 30px rgba(255, 51, 102, 0.3);
+}
+
+.building-icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
 }
 
 .building-card h3 {
-    color: #ffd700;
+    color: var(--accent);
     margin-bottom: 0.5rem;
-    font-size: 1.5rem;
+    font-size: 1rem;
+    text-shadow: 2px 2px 0 var(--darker);
 }
 
 .building-card p {
-    margin: 0.5rem 0;
+    margin: 0.8rem 0;
+    font-size: 0.7rem;
+    line-height: 1.4;
 }
 
 .building-card .cost {
-    color: #ffd700;
+    color: var(--accent);
     font-weight: bold;
 }
 
 .building-card .level {
     margin-top: 1rem;
-    color: #aaa;
+    color: var(--secondary);
+    font-size: 0.7rem;
 }
 
 .build-btn {
     margin-top: 1rem;
-    padding: 0.5rem 2rem;
-    background: linear-gradient(135deg, #4caf50, #2e7d32);
-    border: none;
-    border-radius: 6px;
-    color: white;
+    padding: 0.8rem 1.5rem;
+    background: var(--success);
+    border: 3px solid #00cc66;
+    border-radius: 0;
+    color: var(--darker);
     font-weight: bold;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.1s ease;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.7rem;
+    box-shadow:
+        0 3px 0 #00aa55,
+        0 6px 15px rgba(0, 255, 136, 0.3);
 }
 
 .build-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.5);
+    box-shadow:
+        0 5px 0 #00aa55,
+        0 8px 20px rgba(0, 255, 136, 0.5);
+}
+
+.build-btn:active {
+    transform: translateY(1px);
+    box-shadow:
+        0 2px 0 #00aa55,
+        0 4px 10px rgba(0, 255, 136, 0.3);
 }
 
 .build-btn:disabled {
     background: #555;
+    border-color: #333;
+    color: #888;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
 }
 
 /* Inventory Screen */
@@ -647,11 +829,20 @@ body {
     flex-direction: column;
 }
 
+#game-screen.active {
+    align-items: stretch;
+    justify-content: stretch;
+}
+
 #game-canvas {
     width: 100%;
     height: 100%;
+    flex: 1;
     background: #0a0e27;
     cursor: crosshair;
+    display: block;
+    position: relative;
+    z-index: 1;
 }
 
 #game-ui {
@@ -660,7 +851,8 @@ body {
     left: 0;
     width: 100%;
     padding: 1rem;
-    z-index: 10;
+    z-index: 100;
+    pointer-events: none;
 }
 
 .ui-top {
@@ -672,32 +864,65 @@ body {
 
 .stat-bar {
     flex: 1;
-    max-width: 400px;
+    max-width: 500px;
 }
 
 .hp-bar, .xp-bar {
     position: relative;
     width: 100%;
-    height: 30px;
-    background: rgba(0, 0, 0, 0.7);
-    border: 2px solid #6b4cad;
-    border-radius: 15px;
-    margin-bottom: 0.5rem;
+    height: 32px;
+    background: var(--darker);
+    border: 4px solid var(--purple);
+    border-radius: 0;
+    margin-bottom: 0.8rem;
     overflow: hidden;
+    box-shadow:
+        inset 0 4px 8px rgba(0, 0, 0, 0.5),
+        0 0 15px rgba(107, 76, 173, 0.3);
+}
+
+.hp-bar::after, .xp-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 4px,
+        rgba(0, 0, 0, 0.2) 4px,
+        rgba(0, 0, 0, 0.2) 8px
+    );
+    pointer-events: none;
 }
 
 .bar-fill {
     height: 100%;
     transition: width 0.3s ease;
-    border-radius: 15px;
+    border-radius: 0;
+    position: relative;
+}
+
+.bar-fill::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), transparent);
 }
 
 .hp-bar .bar-fill {
-    background: linear-gradient(90deg, #ff3366, #ff6699);
+    background: linear-gradient(90deg, var(--primary), #ff6699);
+    box-shadow: 0 0 10px var(--primary);
 }
 
 .xp-bar .bar-fill {
-    background: linear-gradient(90deg, #4caf50, #8bc34a);
+    background: linear-gradient(90deg, var(--success), #66ff99);
+    box-shadow: 0 0 10px var(--success);
 }
 
 .hp-bar span, .xp-bar span {
@@ -706,42 +931,144 @@ body {
     left: 50%;
     transform: translate(-50%, -50%);
     font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-    font-size: 0.9rem;
+    text-shadow:
+        2px 2px 0 var(--darker),
+        0 0 10px rgba(0, 0, 0, 0.8);
+    font-size: 0.7rem;
+    z-index: 10;
+    font-family: 'Press Start 2P', cursive;
 }
 
 .game-stats {
-    background: rgba(0, 0, 0, 0.7);
-    padding: 1rem;
-    border-radius: 8px;
-    border: 2px solid #6b4cad;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 1rem 1.5rem;
+    border-radius: 0;
+    border: 4px solid var(--purple);
+    box-shadow:
+        inset 0 0 20px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(107, 76, 173, 0.3);
 }
 
 .game-stats p {
-    margin: 0.3rem 0;
-    font-size: 1.1rem;
+    margin: 0.6rem 0;
+    font-size: 0.7rem;
+    line-height: 1.4;
 }
 
 .game-stats span {
-    color: #ffd700;
+    color: var(--accent);
     font-weight: bold;
+}
+
+.combo-text {
+    color: var(--primary);
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-shadow:
+        2px 2px 0 var(--darker),
+        0 0 10px var(--primary);
+    animation: pulse 0.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}
+
+.powerup-text {
+    font-size: 1.2rem;
+    text-shadow:
+        2px 2px 0 var(--darker),
+        0 0 15px #ffff00;
+    animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.weapon-display {
+    margin-top: 1rem;
+    padding: 0.8rem;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 0;
+    border: 3px solid var(--purple);
+    box-shadow:
+        inset 0 0 15px rgba(0, 0, 0, 0.5),
+        0 0 15px rgba(107, 76, 173, 0.3);
+}
+
+.weapon-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+    font-size: 0.6rem;
+    padding: 0.3rem;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.weapon-emoji {
+    font-size: 1rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.weapon-level {
+    color: var(--accent);
+    font-weight: bold;
+    margin-left: auto;
+}
+
+.weapon-evolved {
+    color: var(--primary);
+    text-shadow:
+        1px 1px 0 var(--darker),
+        0 0 8px var(--primary);
+    animation: pulse 1s infinite;
 }
 
 /* Level Up Screen */
 .levelup-content {
-    background: rgba(20, 10, 40, 0.95);
-    padding: 3rem;
-    border-radius: 16px;
-    border: 3px solid #ff3366;
-    box-shadow: 0 0 40px rgba(255, 51, 102, 0.5);
+    background: linear-gradient(135deg, rgba(20, 10, 40, 0.98), rgba(10, 5, 20, 0.98));
+    padding: 2.5rem;
+    border-radius: 0;
+    border: 6px solid var(--primary);
+    box-shadow:
+        inset 0 0 40px rgba(0, 0, 0, 0.5),
+        0 0 60px rgba(255, 51, 102, 0.6),
+        0 10px 0 rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.levelup-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255, 51, 102, 0.05) 10px,
+        rgba(255, 51, 102, 0.05) 20px
+    );
+    pointer-events: none;
 }
 
 .levelup-content h2 {
-    font-size: 3rem;
-    color: #ffd700;
+    font-size: 2rem;
+    color: var(--accent);
     text-align: center;
     margin-bottom: 2rem;
-    text-shadow: 0 0 20px #ffd700;
+    text-shadow:
+        4px 4px 0 var(--darker),
+        0 0 20px var(--accent);
+    animation: pulse 1s infinite;
+    z-index: 1;
+    position: relative;
 }
 
 .upgrade-grid {
@@ -749,75 +1076,114 @@ body {
     grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
     margin-bottom: 1rem;
+    z-index: 1;
+    position: relative;
 }
 
 .upgrade-card {
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid #6b4cad;
-    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(107, 76, 173, 0.3), rgba(74, 50, 138, 0.3));
+    border: 4px solid var(--purple);
+    border-radius: 0;
     padding: 1.5rem;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     text-align: center;
+    box-shadow:
+        inset 0 0 20px rgba(0, 0, 0, 0.3),
+        0 4px 0 rgba(0, 0, 0, 0.3);
 }
 
 .upgrade-card:hover {
-    border-color: #ff3366;
-    background: rgba(255, 51, 102, 0.2);
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(255, 51, 102, 0.4);
+    border-color: var(--primary);
+    background: linear-gradient(135deg, rgba(255, 51, 102, 0.3), rgba(204, 0, 68, 0.3));
+    transform: translateY(-8px) scale(1.05);
+    box-shadow:
+        inset 0 0 20px rgba(255, 51, 102, 0.2),
+        0 8px 0 rgba(0, 0, 0, 0.3),
+        0 0 30px rgba(255, 51, 102, 0.5);
 }
 
 .upgrade-card h3 {
-    color: #ffd700;
-    margin-bottom: 0.5rem;
-    font-size: 1.3rem;
+    color: var(--accent);
+    margin-bottom: 0.8rem;
+    font-size: 0.9rem;
+    text-shadow: 2px 2px 0 var(--darker);
+    line-height: 1.4;
 }
 
 .upgrade-card p {
     color: #ccc;
-    font-size: 0.9rem;
+    font-size: 0.6rem;
+    line-height: 1.5;
 }
 
 .upgrade-card .level-info {
-    color: #aaa;
+    color: var(--secondary);
+    font-size: 0.7rem;
+    margin-top: 0.8rem;
+    font-weight: bold;
+}
+
+.upgrade-card .evolution-text {
+    color: var(--accent);
     font-size: 0.8rem;
+    font-weight: bold;
+    text-shadow:
+        2px 2px 0 var(--darker),
+        0 0 15px var(--accent);
+    animation: pulse 0.5s infinite;
     margin-top: 0.5rem;
 }
 
 /* Game Over Screen */
 .gameover-content {
-    background: rgba(20, 10, 40, 0.95);
+    background: linear-gradient(135deg, rgba(20, 10, 40, 0.98), rgba(10, 5, 20, 0.98));
     padding: 3rem;
-    border-radius: 16px;
-    border: 3px solid #6b4cad;
+    border-radius: 0;
+    border: 6px solid var(--purple);
     text-align: center;
+    box-shadow:
+        inset 0 0 40px rgba(0, 0, 0, 0.5),
+        0 0 40px rgba(107, 76, 173, 0.5),
+        0 10px 0 rgba(0, 0, 0, 0.3);
 }
 
 .gameover-content h2 {
-    font-size: 3rem;
-    color: #ffd700;
+    font-size: 2rem;
+    color: var(--accent);
     margin-bottom: 2rem;
+    text-shadow:
+        4px 4px 0 var(--darker),
+        0 0 20px var(--accent);
 }
 
 .gameover-content .stats {
     margin-bottom: 2rem;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 1.5rem;
+    border: 3px solid var(--purple);
 }
 
 .gameover-content .stats p {
-    font-size: 1.3rem;
-    margin: 0.5rem 0;
+    font-size: 0.8rem;
+    margin: 0.8rem 0;
+    line-height: 1.5;
 }
 
 .gameover-content .stats span {
-    color: #ffd700;
+    color: var(--accent);
     font-weight: bold;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
     #main-menu h1 {
-        font-size: 3rem;
+        font-size: 2rem;
+    }
+
+    .btn {
+        font-size: 0.8rem;
+        padding: 1rem 2rem;
     }
 
     .upgrade-grid {
@@ -830,5 +1196,16 @@ body {
 
     .ui-top {
         flex-direction: column;
+    }
+
+    .game-stats p,
+    .weapon-item,
+    .building-card p {
+        font-size: 0.6rem;
+    }
+
+    .levelup-content h2,
+    .gameover-content h2 {
+        font-size: 1.5rem;
     }
 }
