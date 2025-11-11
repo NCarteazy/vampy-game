@@ -70,6 +70,11 @@ class Game {
         this.player = new Player(this.canvas.width / 2, this.canvas.height / 2);
         this.player.applyVillageBonuses(this.village);
 
+        // Apply equipment bonuses if equipment is available
+        if (typeof playerEquipment !== 'undefined' && playerEquipment) {
+            this.player.applyEquipmentBonuses(playerEquipment);
+        }
+
         // Create enemy spawner
         this.enemySpawner = new EnemySpawner();
 
