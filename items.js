@@ -57,7 +57,18 @@ const DROP_TABLES = {
         { itemId: 'wood', chance: 0.3, minAmount: 1, maxAmount: 2 },
     ],
 
-    // Special drops (for future elite enemies, bosses, etc.)
+    // Boss drops - very rewarding!
+    boss: [
+        { itemId: 'gold', chance: 1.0, minAmount: 10, maxAmount: 20 },
+        { itemId: 'gems', chance: 0.9, minAmount: 3, maxAmount: 8 },
+        { itemId: 'essence', chance: 0.6, minAmount: 2, maxAmount: 5 },
+        { itemId: 'stone', chance: 0.5, minAmount: 2, maxAmount: 4 },
+        { itemId: 'iron', chance: 0.4, minAmount: 1, maxAmount: 3 },
+        { itemId: 'vampire_ring', chance: 0.08, minAmount: 1, maxAmount: 1 },
+        { itemId: 'lucky_coin', chance: 0.08, minAmount: 1, maxAmount: 1 },
+    ],
+
+    // Special drops (for future elite enemies, etc.)
     elite: [
         { itemId: 'gems', chance: 0.8, minAmount: 2, maxAmount: 5 },
         { itemId: 'essence', chance: 0.4, minAmount: 1, maxAmount: 3 },
