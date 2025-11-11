@@ -658,7 +658,7 @@ class Weapon {
         }
     }
 
-    draw(ctx) {
+    draw(ctx, player) {
         ctx.shadowBlur = this.isEvolved() ? 15 : 8;
         ctx.shadowColor = this.config.color;
         const size = this.config.projectileSize * 2 * (this.isEvolved() ? 1.3 : 1);

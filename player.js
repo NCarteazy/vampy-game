@@ -232,7 +232,7 @@ class Player {
 
         // Draw weapons
         for (let weapon of this.weapons) {
-            weapon.draw(ctx);
+            weapon.draw(ctx, this);
         }
     }
 }
