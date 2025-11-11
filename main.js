@@ -6,6 +6,13 @@ let inventory = null;
 let equipment = null;
 let collectedEquipmentList = []; // Store all collected equipment
 
+// Global save function - saves all game data
+window.saveGameData = function() {
+    if (village && equipment && inventory) {
+        SaveManager.saveGame(village, equipment, collectedEquipmentList, inventory);
+    }
+};
+
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize village, inventory, and equipment
@@ -13,9 +20,24 @@ document.addEventListener('DOMContentLoaded', () => {
     inventory = initializeInventory();
     equipment = initializeEquipment();
 
-    // Add some test items to demonstrate the inventory (comment out later)
-    // Uncomment the line below to add test items:
-    // inventory.addTestItems();
+    // Clean up old save system (migration)
+    if (localStorage.getItem('vampy_village')) {
+        console.log('[Main] Migrating old save data...');
+        localStorage.removeItem('vampy_village');
+    }
+
+    // Load saved game data
+    const saveData = SaveManager.loadGame();
+    if (saveData) {
+        SaveManager.applyVillageData(village, saveData);
+        SaveManager.applyEquipmentData(equipment, saveData);
+        collectedEquipmentList = SaveManager.applyCollectedEquipmentData(saveData);
+        window.collectedEquipment = collectedEquipmentList;
+        SaveManager.applyInventoryData(inventory, saveData);
+        console.log('[Main] Save data loaded and applied');
+    } else {
+        console.log('[Main] Starting new game (no save data found)');
+    }
 
     updateMainMenuUI();
     updateVillageUI();
@@ -489,6 +511,9 @@ function equipItem(index) {
     window.collectedEquipment = collectedEquipmentList;
 
     updateEquipmentUI();
+
+    // Auto-save
+    window.saveGameData();
 }
 
 function unequipItem(slotName) {
@@ -502,6 +527,9 @@ function unequipItem(slotName) {
         window.collectedEquipment = collectedEquipmentList;
 
         updateEquipmentUI();
+
+        // Auto-save
+        window.saveGameData();
     }
 }
 

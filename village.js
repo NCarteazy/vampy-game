@@ -11,7 +11,7 @@ class Village {
         };
 
         this.bestTime = 0;
-        this.load();
+        // Note: Loading is now handled by SaveManager in main.js
     }
 
     getCost(buildingName) {
@@ -29,38 +29,31 @@ class Village {
         const cost = this.getCost(buildingName);
         this.gold -= cost;
         this.buildings[buildingName].level++;
-        this.save();
+
+        // Trigger auto-save via global save function
+        if (window.saveGameData) {
+            window.saveGameData();
+        }
         return true;
     }
 
     addGold(amount) {
         this.gold += amount;
-        this.save();
+
+        // Trigger auto-save via global save function
+        if (window.saveGameData) {
+            window.saveGameData();
+        }
     }
 
     updateBestTime(time) {
         if (time > this.bestTime) {
             this.bestTime = time;
-            this.save();
-        }
-    }
 
-    save() {
-        const data = {
-            gold: this.gold,
-            buildings: this.buildings,
-            bestTime: this.bestTime
-        };
-        localStorage.setItem('vampy_village', JSON.stringify(data));
-    }
-
-    load() {
-        const saved = localStorage.getItem('vampy_village');
-        if (saved) {
-            const data = JSON.parse(saved);
-            this.gold = data.gold || 0;
-            this.buildings = data.buildings || this.buildings;
-            this.bestTime = data.bestTime || 0;
+            // Trigger auto-save via global save function
+            if (window.saveGameData) {
+                window.saveGameData();
+            }
         }
     }
 
@@ -73,6 +66,10 @@ class Village {
             workshop: { level: 0, baseCost: 60, effect: 'attackSpeed' }
         };
         this.bestTime = 0;
-        this.save();
+
+        // Trigger auto-save via global save function
+        if (window.saveGameData) {
+            window.saveGameData();
+        }
     }
 }
