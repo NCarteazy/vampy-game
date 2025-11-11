@@ -21,8 +21,11 @@ class Game {
         this.player = null;
         this.enemySpawner = null;
 
-        // Pickups
+        // Pickups (old XP/gold system - keeping for XP)
         this.pickups = [];
+
+        // New drop system
+        this.drops = [];
 
         // Stats
         this.time = 0;
@@ -70,8 +73,9 @@ class Game {
         // Create enemy spawner
         this.enemySpawner = new EnemySpawner();
 
-        // Clear pickups
+        // Clear pickups and drops
         this.pickups = [];
+        this.drops = [];
 
         // Start game loop
         this.lastTime = performance.now();
@@ -114,13 +118,12 @@ class Game {
                 this.kills++;
                 this.gold += enemy.goldValue;
 
-                // Drop XP
+                // Drop XP (keep old system for XP)
                 this.dropXP(enemy.x, enemy.y, enemy.xpValue);
 
-                // Chance to drop gold pickup
-                if (Math.random() < 0.3) {
-                    this.dropGold(enemy.x, enemy.y, enemy.goldValue * 2);
-                }
+                // New drop system - spawn items based on enemy type
+                const newDrops = DropManager.spawnDrops(enemy.x, enemy.y, enemy.type);
+                this.drops.push(...newDrops);
 
                 enemies.splice(i, 1);
             }
@@ -154,6 +157,20 @@ class Game {
 
         this.pickups = this.pickups.filter(p => !p.collected);
 
+        // Update drops (new system)
+        for (let i = this.drops.length - 1; i >= 0; i--) {
+            const drop = this.drops[i];
+            const collectedItemId = drop.update(dt, this.player);
+
+            if (collectedItemId) {
+                // Add to inventory
+                if (playerInventory) {
+                    playerInventory.addItem(collectedItemId, drop.amount);
+                }
+                this.drops.splice(i, 1);
+            }
+        }
+
         // Update UI
         this.updateUI();
 
@@ -185,7 +202,7 @@ class Game {
             this.ctx.stroke();
         }
 
-        // Draw pickups
+        // Draw pickups (old system - XP)
         for (let pickup of this.pickups) {
             this.ctx.fillStyle = pickup.type === 'xp' ? '#00ff00' : '#ffd700';
             this.ctx.shadowBlur = 10;
@@ -194,6 +211,11 @@ class Game {
             this.ctx.arc(pickup.x, pickup.y, 8, 0, Math.PI * 2);
             this.ctx.fill();
             this.ctx.shadowBlur = 0;
+        }
+
+        // Draw drops (new system)
+        for (let drop of this.drops) {
+            drop.draw(this.ctx);
         }
 
         // Draw enemies

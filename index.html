@@ -14,6 +14,7 @@
             <div class="menu-content">
                 <button id="start-game-btn" class="btn btn-primary">Start Run</button>
                 <button id="village-btn" class="btn btn-secondary">Village</button>
+                <button id="inventory-btn" class="btn btn-secondary">Inventory</button>
                 <div class="stats">
                     <p>Gold: <span id="gold-display">0</span></p>
                     <p>Best Time: <span id="best-time-display">0:00</span></p>
@@ -59,6 +60,28 @@
                     </div>
                 </div>
                 <button id="back-to-menu-btn" class="btn btn-secondary">Back to Menu</button>
+            </div>
+        </div>
+
+        <!-- Inventory Screen -->
+        <div id="inventory-screen" class="screen">
+            <h2>Inventory</h2>
+            <div class="inventory-content">
+                <!-- Resource Summary -->
+                <div class="resource-summary">
+                    <h3>Resources</h3>
+                    <div id="resource-list"></div>
+                </div>
+
+                <!-- Inventory Grid -->
+                <div class="inventory-container">
+                    <div id="inventory-grid" class="inventory-grid">
+                        <!-- Dynamically populated slots -->
+                    </div>
+                    <div id="slot-tooltip" class="slot-tooltip hidden"></div>
+                </div>
+
+                <button id="back-from-inventory-btn" class="btn btn-secondary">Back</button>
             </div>
         </div>
 
@@ -111,6 +134,8 @@
     </div>
 
     <script src="utils.js"></script>
+    <script src="items.js"></script>
+    <script src="inventory.js"></script>
     <script src="weapon.js"></script>
     <script src="enemy.js"></script>
     <script src="player.js"></script>
