@@ -56,7 +56,7 @@ const SaveManager = {
             if (!slot.isEmpty()) {
                 saveData.inventory.slots.push({
                     index: i,
-                    itemId: slot.item.id,
+                    itemId: slot.itemId,
                     amount: slot.amount
                 });
             }
@@ -161,9 +161,10 @@ const SaveManager = {
         // Apply saved slots
         if (data.inventory.slots && Array.isArray(data.inventory.slots)) {
             for (let slotData of data.inventory.slots) {
+                // Verify the item exists in the database
                 const item = ItemDatabase[slotData.itemId];
                 if (item && slotData.index < inventory.slotCount) {
-                    inventory.slots[slotData.index].item = item;
+                    inventory.slots[slotData.index].itemId = slotData.itemId;
                     inventory.slots[slotData.index].amount = slotData.amount;
                 }
             }

@@ -304,9 +304,8 @@ class Game {
 
             if (collectedItemId) {
                 // Item was collected - add to inventory
-                const item = DropManager.getItem(collectedItemId);
-                if (item && inventory) {
-                    const added = inventory.addItem(item, drop.amount);
+                if (inventory) {
+                    const added = inventory.addItem(collectedItemId, drop.amount);
                     if (added) {
                         // Save inventory when items are collected
                         if (window.saveGameData) {
