@@ -199,13 +199,17 @@ class EnemySpawner {
         // Late game: All types including tanks
         const type = selectEnemyType(this.difficulty);
 
-        // ========== HP SCALING ==========
+        // ========== STAT SCALING ==========
         // Create enemy and scale stats based on difficulty
-        // 30% HP increase per difficulty level above 1.0
+        // HP: 50% increase per difficulty level above 1.0
+        // Damage: 30% increase per difficulty level above 1.0
         const enemy = new Enemy(x, y, type);
-        const scaling = 1 + (this.difficulty - 1) * GameConfig.spawning.enemyHpScaling;
-        enemy.hp *= scaling;
-        enemy.maxHp *= scaling;
+        const hpScaling = 1 + (this.difficulty - 1) * GameConfig.spawning.enemyHpScaling;
+        const damageScaling = 1 + (this.difficulty - 1) * 0.3; // HARDER: Damage scales with difficulty
+
+        enemy.hp *= hpScaling;
+        enemy.maxHp *= hpScaling;
+        enemy.damage *= damageScaling;
 
         this.enemies.push(enemy);
     }
@@ -230,9 +234,12 @@ class EnemySpawner {
         }
 
         const boss = new Enemy(x, y, 'boss');
-        const scaling = 1 + (this.difficulty - 1) * GameConfig.spawning.bossHpScaling;
-        boss.hp *= scaling;
-        boss.maxHp *= scaling;
+        const hpScaling = 1 + (this.difficulty - 1) * GameConfig.spawning.bossHpScaling;
+        const damageScaling = 1 + (this.difficulty - 1) * 0.4; // HARDER: Boss damage scales 40% per difficulty
+
+        boss.hp *= hpScaling;
+        boss.maxHp *= hpScaling;
+        boss.damage *= damageScaling;
         this.enemies.push(boss);
     }
 

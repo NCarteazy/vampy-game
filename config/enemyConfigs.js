@@ -13,9 +13,9 @@
 const EnemyConfigs = {
     basic: {
         maxHp: 30,
-        speed: 80,
-        damage: 10,
-        size: 15,
+        speed: 110,        // Was 80 - HARDER: 37% faster
+        damage: 15,        // Was 10 - HARDER: 50% more damage
+        size: 20,          // Was 15 - HARDER: 33% larger hitbox
         color: '#ff3366',
         xpValue: 5,
         goldValue: 1,
@@ -25,9 +25,9 @@ const EnemyConfigs = {
 
     fast: {
         maxHp: 15,
-        speed: 150,
-        damage: 5,
-        size: 12,
+        speed: 200,        // Was 150 - HARDER: 33% faster
+        damage: 8,         // Was 5 - HARDER: 60% more damage
+        size: 16,          // Was 12 - HARDER: 33% larger hitbox
         color: '#ffaa00',
         xpValue: 3,
         goldValue: 2,
@@ -37,9 +37,9 @@ const EnemyConfigs = {
 
     tank: {
         maxHp: 100,
-        speed: 40,
-        damage: 20,
-        size: 25,
+        speed: 55,         // Was 40 - HARDER: 37% faster
+        damage: 25,        // Was 20 - HARDER: 25% more damage
+        size: 30,          // Was 25 - HARDER: 20% larger hitbox
         color: '#8844ff',
         xpValue: 15,
         goldValue: 5,
@@ -49,9 +49,9 @@ const EnemyConfigs = {
 
     swarm: {
         maxHp: 10,
-        speed: 100,
-        damage: 5,
-        size: 10,
+        speed: 130,        // Was 100 - HARDER: 30% faster
+        damage: 8,         // Was 5 - HARDER: 60% more damage
+        size: 14,          // Was 10 - HARDER: 40% larger hitbox
         color: '#00ff88',
         xpValue: 2,
         goldValue: 1,
@@ -61,9 +61,9 @@ const EnemyConfigs = {
 
     boss: {
         maxHp: 500,
-        speed: 60,
-        damage: 30,
-        size: 40,
+        speed: 75,         // Was 60 - HARDER: 25% faster
+        damage: 40,        // Was 30 - HARDER: 33% more damage
+        size: 45,          // Was 40 - HARDER: 12% larger hitbox
         color: '#ff0000',
         xpValue: 50,
         goldValue: 25,

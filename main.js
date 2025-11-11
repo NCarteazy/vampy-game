@@ -84,6 +84,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('return-menu-btn').addEventListener('click', () => {
         const gameoverScreen = document.getElementById('gameover-screen');
         gameoverScreen.classList.remove('active');
+
+        // Clear the canvas to remove last game state
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Switch to main menu
         switchScreen(gameScreen, mainMenu);
         updateMainMenuUI();
     });
