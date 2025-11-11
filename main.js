@@ -116,6 +116,32 @@ document.addEventListener('DOMContentLoaded', () => {
         updateMainMenuUI();
     });
 
+    // Pause menu buttons
+    document.getElementById('resume-btn').addEventListener('click', () => {
+        if (game) {
+            game.resume();
+        }
+    });
+
+    document.getElementById('pause-menu-btn').addEventListener('click', () => {
+        if (game) {
+            // Stop the game
+            game.stop();
+
+            // Close pause menu
+            const pauseMenu = document.getElementById('pause-menu');
+            pauseMenu.classList.remove('active');
+
+            // Clear the canvas to remove last game state
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Switch to main menu
+            switchScreen(gameScreen, mainMenu);
+            updateMainMenuUI();
+        }
+    });
+
     // Initialize game
     game = new Game(canvas, village);
     window.currentGame = game; // For weapon explosion visuals

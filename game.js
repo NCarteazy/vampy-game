@@ -80,6 +80,12 @@ class Game {
     setupInput() {
         window.addEventListener('keydown', (e) => {
             this.keys[e.key] = true;
+
+            // Handle Escape key for pause menu
+            if (e.key === 'Escape' && this.running && !document.getElementById('levelup-screen').classList.contains('active')) {
+                e.preventDefault();
+                this.togglePause();
+            }
         });
 
         window.addEventListener('keyup', (e) => {
@@ -656,6 +662,30 @@ class Game {
         document.getElementById('final-gold').textContent = this.gold;
 
         screen.classList.add('active');
+    }
+
+    togglePause() {
+        if (this.paused) {
+            this.resume();
+        } else {
+            this.pause();
+        }
+    }
+
+    pause() {
+        if (!this.running || this.paused) return;
+
+        this.paused = true;
+        const pauseMenu = document.getElementById('pause-menu');
+        pauseMenu.classList.add('active');
+    }
+
+    resume() {
+        if (!this.paused) return;
+
+        this.paused = false;
+        const pauseMenu = document.getElementById('pause-menu');
+        pauseMenu.classList.remove('active');
     }
 
     stop() {
