@@ -1,10 +1,11 @@
 // Enemy System
 
 class Enemy {
-    constructor(x, y, type = 'basic') {
+    constructor(x, y, type = 'basic', isElite = false) {
         this.x = x;
         this.y = y;
         this.type = type;
+        this.isElite = isElite;
         this.dead = false;
 
         this.config = this.getConfig();
@@ -15,6 +16,17 @@ class Enemy {
         this.damage = this.config.damage;
         this.xpValue = this.config.xpValue;
         this.goldValue = this.config.goldValue;
+
+        // Elite bonuses
+        if (this.isElite) {
+            this.hp *= 3;
+            this.maxHp *= 3;
+            this.size *= 1.4;
+            this.damage *= 1.5;
+            this.xpValue *= 5;
+            this.goldValue *= 3;
+            this.glowPhase = 0; // For visual effect
+        }
     }
 
     getConfig() {
@@ -63,6 +75,11 @@ class Enemy {
     update(dt, player) {
         if (this.dead) return;
 
+        // Update glow phase for elites
+        if (this.isElite) {
+            this.glowPhase += dt * 2;
+        }
+
         // Move towards player
         const dx = player.x - this.x;
         const dy = player.y - this.y;
@@ -89,24 +106,50 @@ class Enemy {
     draw(ctx) {
         if (this.dead) return;
 
+        // Elite special effects
+        if (this.isElite) {
+            // Pulsing outer glow
+            const pulseAmount = Math.sin(this.glowPhase) * 0.3 + 0.7;
+            ctx.shadowBlur = 30 * pulseAmount;
+            ctx.shadowColor = '#ffcc00';
+
+            // Draw outer ring
+            ctx.strokeStyle = '#ffcc00';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size + 5, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
         // Draw enemy body
-        ctx.fillStyle = this.config.color;
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = this.config.color;
+        ctx.fillStyle = this.isElite ? '#ffaa00' : this.config.color;
+        ctx.shadowBlur = this.isElite ? 20 : 15;
+        ctx.shadowColor = this.isElite ? '#ffcc00' : this.config.color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0;
 
+        // Draw elite crown/marker
+        if (this.isElite) {
+            ctx.fillStyle = '#ffcc00';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 3;
+            ctx.strokeText('★', this.x, this.y - this.size - 15);
+            ctx.fillText('★', this.x, this.y - this.size - 15);
+        }
+
         // Draw HP bar
         const barWidth = this.size * 2;
-        const barHeight = 4;
+        const barHeight = this.isElite ? 6 : 4;
         const barY = this.y - this.size - 10;
 
         ctx.fillStyle = '#333';
         ctx.fillRect(this.x - barWidth / 2, barY, barWidth, barHeight);
 
-        ctx.fillStyle = '#ff3366';
+        ctx.fillStyle = this.isElite ? '#ffcc00' : '#ff3366';
         const hpPercent = this.hp / this.maxHp;
         ctx.fillRect(this.x - barWidth / 2, barY, barWidth * hpPercent, barHeight);
     }
@@ -172,6 +215,10 @@ class EnemySpawner {
                 break;
         }
 
+        // Chance to spawn elite (increases with difficulty)
+        const eliteChance = Math.min(0.05 + (this.difficulty - 1) * 0.02, 0.15);
+        const isElite = Math.random() < eliteChance && this.difficulty > 1.5;
+
         // Choose enemy type based on difficulty
         let type = 'basic';
         const rand = Math.random();
@@ -185,10 +232,13 @@ class EnemySpawner {
             else if (rand < 0.6) type = 'swarm';
         }
 
-        const enemy = new Enemy(x, y, type);
-        // Scale with difficulty
-        enemy.hp *= (1 + (this.difficulty - 1) * 0.3);
-        enemy.maxHp *= (1 + (this.difficulty - 1) * 0.3);
+        const enemy = new Enemy(x, y, type, isElite);
+
+        // Scale with difficulty (non-elites only, elites already scaled)
+        if (!isElite) {
+            enemy.hp *= (1 + (this.difficulty - 1) * 0.3);
+            enemy.maxHp *= (1 + (this.difficulty - 1) * 0.3);
+        }
 
         this.enemies.push(enemy);
     }

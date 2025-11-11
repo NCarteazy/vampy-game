@@ -121,9 +121,29 @@ class Game {
                 // Drop XP (keep old system for XP)
                 this.dropXP(enemy.x, enemy.y, enemy.xpValue);
 
-                // New drop system - spawn items based on enemy type
-                const newDrops = DropManager.spawnDrops(enemy.x, enemy.y, enemy.type);
-                this.drops.push(...newDrops);
+                // Elite enemies drop equipment!
+                if (enemy.isElite) {
+                    // Calculate item level based on difficulty
+                    const itemLevel = Math.max(1, Math.floor(this.enemySpawner.difficulty));
+
+                    // Generate random equipment with elite rarity boost
+                    const equipment = EquipmentGenerator.generateRandomEquipment(
+                        itemLevel,
+                        EquipmentGenerator.rollEliteRarity()
+                    );
+
+                    // Spawn equipment drop
+                    const equipDrop = new EquipmentDrop(enemy.x, enemy.y, equipment);
+                    this.drops.push(equipDrop);
+
+                    // Extra resource drops from elites
+                    const eliteDrops = DropManager.spawnDrops(enemy.x, enemy.y, 'elite');
+                    this.drops.push(...eliteDrops);
+                } else {
+                    // Regular enemy drops
+                    const newDrops = DropManager.spawnDrops(enemy.x, enemy.y, enemy.type);
+                    this.drops.push(...newDrops);
+                }
 
                 enemies.splice(i, 1);
             }
@@ -160,12 +180,31 @@ class Game {
         // Update drops (new system)
         for (let i = this.drops.length - 1; i >= 0; i--) {
             const drop = this.drops[i];
-            const collectedItemId = drop.update(dt, this.player);
+            const collected = drop.update(dt, this.player);
 
-            if (collectedItemId) {
-                // Add to inventory
-                if (playerInventory) {
-                    playerInventory.addItem(collectedItemId, drop.amount);
+            if (collected) {
+                if (drop.isEquipment) {
+                    // Equipment drop - add to inventory as special item
+                    if (playerInventory) {
+                        // For now, add to inventory - later we'll show equipment UI
+                        const equipData = {
+                            type: 'equipment_item',
+                            equipment: collected // The Equipment object
+                        };
+
+                        // Store in a temporary array for now
+                        if (!window.collectedEquipment) {
+                            window.collectedEquipment = [];
+                        }
+                        window.collectedEquipment.push(collected);
+
+                        console.log(`Collected ${collected.rarity} equipment: ${collected.name}`);
+                    }
+                } else {
+                    // Regular item drop
+                    if (playerInventory) {
+                        playerInventory.addItem(collected, drop.amount);
+                    }
                 }
                 this.drops.splice(i, 1);
             }

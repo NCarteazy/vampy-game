@@ -78,6 +78,109 @@ const DROP_TABLES = {
     ],
 };
 
+// Equipment drop instance (spawns actual equipment items)
+class EquipmentDrop {
+    constructor(x, y, equipment) {
+        this.x = x;
+        this.y = y;
+        this.equipment = equipment; // Full Equipment object
+        this.radius = 15;
+        this.collected = false;
+        this.isEquipment = true; // Flag to identify as equipment
+
+        // Visual properties
+        this.bobOffset = Math.random() * Math.PI * 2;
+        this.attractRadius = 120; // Slightly larger attract radius
+        this.attracting = false;
+        this.attractSpeed = 250; // Slightly slower for dramatic effect
+    }
+
+    update(dt, player) {
+        // Bob up and down
+        this.bobOffset += dt * 3;
+
+        // Check if player is in range
+        const dx = player.x - this.x;
+        const dy = player.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < this.attractRadius) {
+            this.attracting = true;
+        }
+
+        // Move toward player if attracting
+        if (this.attracting) {
+            const moveX = (dx / distance) * this.attractSpeed * dt;
+            const moveY = (dy / distance) * this.attractSpeed * dt;
+            this.x += moveX;
+            this.y += moveY;
+
+            // Check for collection
+            if (distance < player.radius + this.radius) {
+                this.collected = true;
+                return this.equipment; // Return equipment object
+            }
+        }
+
+        return null;
+    }
+
+    draw(ctx) {
+        const bobAmount = Math.sin(this.bobOffset) * 4;
+        const drawY = this.y + bobAmount;
+
+        const rarityColors = {
+            normal: '#aaaaaa',
+            magic: '#3366ff',
+            rare: '#ffcc00',
+            legendary: '#ff6600'
+        };
+
+        const color = rarityColors[this.equipment.rarity];
+
+        // Glow effect based on rarity
+        const glowIntensity = this.equipment.rarity === 'legendary' ? 25 :
+                              this.equipment.rarity === 'rare' ? 20 :
+                              this.equipment.rarity === 'magic' ? 15 : 10;
+
+        ctx.shadowBlur = glowIntensity;
+        ctx.shadowColor = color;
+
+        // Draw as a star/diamond shape for equipment
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        for (let i = 0; i < 4; i++) {
+            const angle = (i * Math.PI / 2) + (this.bobOffset / 2);
+            const x = this.x + Math.cos(angle) * this.radius;
+            const y = drawY + Math.sin(angle) * this.radius;
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        // Inner shine
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.beginPath();
+        ctx.arc(this.x - 3, drawY - 3, this.radius * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw rarity letter
+        ctx.fillStyle = 'white';
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2;
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        const rarityLetter = this.equipment.rarity.charAt(0).toUpperCase();
+        ctx.strokeText(rarityLetter, this.x, drawY + this.radius + 15);
+        ctx.fillText(rarityLetter, this.x, drawY + this.radius + 15);
+    }
+}
+
 // Drop instance (what actually spawns in the world)
 class Drop {
     constructor(x, y, itemId, amount = 1) {
@@ -87,6 +190,7 @@ class Drop {
         this.amount = amount;
         this.radius = 12;
         this.collected = false;
+        this.isEquipment = false; // Flag to identify as regular drop
 
         // Visual properties
         this.bobOffset = Math.random() * Math.PI * 2; // For floating animation
