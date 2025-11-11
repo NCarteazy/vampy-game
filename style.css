@@ -999,19 +999,47 @@ body::before {
     background: linear-gradient(135deg, #0d0221 0%, #1a0033 100%);
 }
 
-.inventory-container {
-    max-width: 900px;
-    width: 100%;
-    padding: 2rem;
-}
-
-.inventory-container h2 {
+#inventory-screen h2 {
     font-family: 'Cinzel', serif;
     font-size: 2.5rem;
     text-align: center;
     margin-bottom: 2rem;
     color: var(--gold);
     filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.3));
+}
+
+.inventory-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.resource-summary {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 600px;
+}
+
+.resource-summary h3 {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    text-align: center;
+}
+
+.inventory-container {
+    max-width: 900px;
+    width: 100%;
 }
 
 .inventory-grid {
@@ -1090,19 +1118,46 @@ body::before {
     background: linear-gradient(135deg, #0d0221 0%, #1a0033 100%);
 }
 
-.equipment-container {
-    max-width: 1200px;
-    width: 100%;
-    padding: 2rem;
-}
-
-.equipment-container h2 {
+#equipment-screen h2 {
     font-family: 'Cinzel', serif;
     font-size: 2.5rem;
     text-align: center;
     margin-bottom: 2rem;
     color: var(--gold);
     filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.3));
+}
+
+.equipment-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.equipment-display {
+    width: 100%;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.equipment-display h3 {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+.equipment-container {
+    max-width: 1200px;
+    width: 100%;
 }
 
 .equipment-layout {
@@ -1112,19 +1167,10 @@ body::before {
 }
 
 .equipment-slots {
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    padding: 2rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-}
-
-.equipment-slots h3 {
-    font-family: 'Cinzel', serif;
-    color: var(--gold);
-    margin-bottom: 1.5rem;
-    font-size: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
 }
 
 .equipment-grid {
@@ -1134,7 +1180,6 @@ body::before {
 }
 
 .equipment-slot {
-    aspect-ratio: 1;
     background: rgba(0, 0, 0, 0.5);
     border: 2px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
@@ -1144,7 +1189,8 @@ body::before {
     justify-content: center;
     transition: all 0.2s;
     cursor: pointer;
-    padding: 0.5rem;
+    padding: 1rem;
+    min-height: 120px;
 }
 
 .equipment-slot:hover {
@@ -1154,6 +1200,24 @@ body::before {
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
 }
 
+.slot-label {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    text-align: center;
+    font-weight: 600;
+}
+
+.slot-box {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60px;
+    width: 100%;
+}
+
 .equipment-slot-label {
     font-size: 0.65rem;
     color: rgba(255, 255, 255, 0.5);
@@ -1161,22 +1225,43 @@ body::before {
     text-transform: uppercase;
 }
 
-.equipment-list {
+.total-stats {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.total-stats h4 {
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.equipment-list-container {
+    width: 100%;
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
     border-radius: 16px;
     padding: 2rem;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    max-height: 600px;
-    overflow-y: auto;
 }
 
-.equipment-list h3 {
+.equipment-list-container h3 {
     font-family: 'Cinzel', serif;
     color: var(--gold);
     margin-bottom: 1.5rem;
     font-size: 1.5rem;
+    text-align: center;
+}
+
+#equipment-list {
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 .equipment-item {
