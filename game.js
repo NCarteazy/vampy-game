@@ -670,11 +670,22 @@ class Game {
     }
 
     updateUI() {
-        // Update HP bar
+        // Update HP bar with dynamic colors
         const hpPercent = (this.player.hp / this.player.maxHp) * 100;
-        document.getElementById('hp-fill').style.width = hpPercent + '%';
+        const hpFill = document.getElementById('hp-fill');
+        hpFill.style.width = hpPercent + '%';
         document.getElementById('hp-text').textContent =
             `${Math.ceil(this.player.hp)}/${Math.ceil(this.player.maxHp)}`;
+
+        // Dynamic HP bar color based on health percentage
+        hpFill.classList.remove('hp-high', 'hp-medium', 'hp-low');
+        if (hpPercent > 60) {
+            hpFill.classList.add('hp-high');
+        } else if (hpPercent > 30) {
+            hpFill.classList.add('hp-medium');
+        } else {
+            hpFill.classList.add('hp-low');
+        }
 
         // Update XP bar
         const xpPercent = (this.player.xp / this.player.xpToNextLevel) * 100;
